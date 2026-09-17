@@ -1,58 +1,169 @@
 import SwiftUI
 
-/// "Hydration Insights": weekly summary, interactive bar chart, day detail
-/// timeline, and a monthly consistency heat-map.
+/// "Hydration Insights": selectable Week / Month / Year / Custom ranges with
+/// range-aware summary stats, bar charts, day detail timeline, and a monthly
+/// consistency heat-map.
 struct AnalyticsView: View {
     @EnvironmentObject var store: HydrationStore
 
+    enum RangeMode: String, CaseIterable, Identifiable {
+        case week, month, year, custom
+        var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .week: "Week"
+            case .month: "Month"
+            case .year: "Year"
+            case .custom: "Custom"
+            }
+        }
+    }
+
+    @State private var mode: RangeMode = .week
+    @State private var customStart: Date = Calendar.current.date(byAdding: .day, value: -13, to: Date()) ?? Date()
+    @State private var customEnd: Date = Date()
+    @State private var showCustomPicker = false
     @State private var selectedDay: Date?
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 header
+                rangePicker
                 summaryCard
-                weeklyChartCard
-                dayDetailCard
-                heatmapCard
+                chartCard
+                if mode == .week {
+                    dayDetailCard
+                    heatmapCard
+                }
             }
             .padding(.horizontal, .margin)
             .padding(.top, 8)
             .padding(.bottom, 110)
+            .frame(maxWidth: .infinity)
         }
+        .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         .background(Theme.canvas)
         .navigationTitle("Hydration Insights")
         .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showCustomPicker) { customRangeSheet }
     }
 
-    // MARK: - Header row
+    private var unit: VolumeUnit { store.profile.unit }
+
+    // MARK: - Range resolution
+
+    /// The active date range (inclusive day bounds) for the current mode.
+    private var activeRange: (start: Date, end: Date) {
+        let cal = Calendar.current
+        switch mode {
+        case .week:
+            let days = StatsEngine.weekDays(reference: Date())
+            return (days.first ?? Date(), days.last ?? Date())
+        case .month:
+            let interval = cal.dateInterval(of: .month, for: Date())
+            return (interval?.start ?? Date(), interval?.end ?? Date())
+        case .year:
+            let interval = cal.dateInterval(of: .year, for: Date())
+            return (interval?.start ?? Date(), interval?.end ?? Date())
+        case .custom:
+            return (cal.startOfDay(for: customStart),
+                    cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: customEnd)) ?? Date())
+        }
+    }
+
+    /// Daily totals within the active range.
+    private var rangeDailyTotals: [(day: Date, value: Double)] {
+        let cal = Calendar.current
+        let (start, end) = activeRange
+        var days: [Date] = []
+        var cursor = cal.startOfDay(for: start)
+        let limit = min(end, Date())
+        while cursor < limit, days.count < 400 {
+            days.append(cursor)
+            guard let next = cal.date(byAdding: .day, value: 1, to: cursor) else { break }
+            cursor = next
+        }
+        return days.map { ($0, StatsEngine.totalML(on: $0, from: store.entries)) }
+    }
+
+    // MARK: - Header + range picker
 
     private var header: some View {
         HStack {
             Spacer()
-            Text(weekRangeText)
+            Text(rangeText)
                 .font(FlowFont.caption())
                 .foregroundStyle(Theme.labelTertiary)
+                .lineLimit(1)
         }
         .padding(.horizontal, 4)
     }
 
-    // MARK: - Summary card
+    private var rangePicker: some View {
+        HStack(spacing: 0) {
+            ForEach(RangeMode.allCases) { m in
+                Button {
+                    Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { mode = m }
+                    if m == .custom { showCustomPicker = true }
+                } label: {
+                    Text(m.label)
+                        .font(FlowFont.bodyBold(13))
+                        .fontWeight(mode == m ? .bold : .medium)
+                        .foregroundStyle(mode == m ? .white : Theme.labelSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(mode == m ? AnyShapeStyle(Theme.azure) : AnyShapeStyle(Color.clear))
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.azure.opacity(0.07)))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.azure.opacity(0.12), lineWidth: 0.5))
+    }
+
+    private var rangeText: String {
+        let fmt = Self.rangeFormatter
+        switch mode {
+        case .week:
+            let days = StatsEngine.weekDays(reference: Date())
+            guard days.count == 7 else { return "" }
+            return "\(fmt.string(from: days[0])) – \(fmt.string(from: days[6]))"
+        case .month:
+            return Self.monthFormatter.string(from: Date())
+        case .year:
+            return String(Calendar.current.component(.year, from: Date()))
+        case .custom:
+            return "\(fmt.string(from: customStart)) – \(fmt.string(from: customEnd))"
+        }
+    }
+
+    // MARK: - Summary
 
     private var summaryCard: some View {
-        let avg = StatsEngine.weekAverageML(reference: Date(), entries: store.entries)
-        let change = StatsEngine.weekOverWeekChange(reference: Date(), entries: store.entries)
+        let totals = rangeDailyTotals
+        let daysWithData = totals.filter { $0.value > 0 }
+        let avg = daysWithData.isEmpty ? 0 : daysWithData.map(\.value).reduce(0, +) / Double(daysWithData.count)
+        let daysMet = totals.filter { $0.value >= store.dailyGoalML }.count
 
         return FlowCard {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("WEEKLY METRIC")
+                    Text("\(mode.label.uppercased()) METRIC")
                         .font(FlowFont.caption(10))
                         .fontWeight(.bold)
                         .tracking(0.6)
                         .foregroundStyle(Theme.brandPrimary)
-                    Text("\(daysMet) / 7 Days Goal Met")
+                    Text("\(daysMet) / \(max(totals.count, 1)) Days Goal Met")
                         .font(FlowFont.headline())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                     HStack(spacing: 8) {
                         Text("Daily Avg:")
                             .font(FlowFont.subhead())
@@ -60,8 +171,8 @@ struct AnalyticsView: View {
                         Text("\(Int(unit.value(fromML: avg).rounded())) \(unit.symbol)")
                             .font(FlowFont.bodyBold())
                             .foregroundStyle(Theme.brandPrimary)
-                        if let change {
-                            Text(String(format: "%+.0f%% vs lw", change))
+                        if let change = periodOverPeriodChange {
+                            Text(String(format: "%+.0f%% vs prev", change))
                                 .font(FlowFont.caption())
                                 .fontWeight(.bold)
                                 .foregroundStyle(change >= 0 ? Theme.success : Theme.destructive)
@@ -73,7 +184,6 @@ struct AnalyticsView: View {
                 }
                 Spacer()
 
-                // Glowing checkmark badge.
                 ZStack {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(Theme.aqua.opacity(0.20))
@@ -87,9 +197,33 @@ struct AnalyticsView: View {
         }
     }
 
-    // MARK: - Weekly chart
+    /// Average change vs the immediately preceding equal-length window.
+    private var periodOverPeriodChange: Double? {
+        let cal = Calendar.current
+        let (start, _) = activeRange
+        let length = rangeDailyTotals.count
+        guard length > 0 else { return nil }
 
-    private var weeklyChartCard: some View {
+        var prevDays: [Date] = []
+        if let s = cal.date(byAdding: .day, value: -length, to: cal.startOfDay(for: start)) {
+            var cursor = s
+            for _ in 0..<length {
+                prevDays.append(cursor)
+                cursor = cal.date(byAdding: .day, value: 1, to: cursor) ?? cursor
+            }
+        }
+        let prevTotals = prevDays.map { StatsEngine.totalML(on: $0, from: store.entries) }.filter { $0 > 0 }
+        let curTotals = rangeDailyTotals.map(\.value).filter { $0 > 0 }
+        guard !prevTotals.isEmpty, !curTotals.isEmpty else { return nil }
+        let prevAvg = prevTotals.reduce(0, +) / Double(prevTotals.count)
+        let curAvg = curTotals.reduce(0, +) / Double(curTotals.count)
+        guard prevAvg > 0 else { return nil }
+        return (curAvg - prevAvg) / prevAvg * 100
+    }
+
+    // MARK: - Chart
+
+    private var chartCard: some View {
         FlowCard {
             VStack(spacing: 14) {
                 HStack {
@@ -97,7 +231,7 @@ struct AnalyticsView: View {
                         Image(systemName: "bar.chart.fill")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(Theme.azure)
-                        Text("Weekly Intake Trend")
+                        Text("\(mode.label) Intake Trend")
                             .font(FlowFont.headlineSmall())
                     }
                     Spacer()
@@ -106,17 +240,94 @@ struct AnalyticsView: View {
                         .foregroundStyle(Theme.labelTertiary)
                 }
 
-                WeeklyBarChart(
-                    reference: Date(),
-                    entries: store.entries,
+                RangeBarChart(
+                    totals: rangeDailyTotals,
                     goalML: store.dailyGoalML,
-                    unit: unit
+                    unit: unit,
+                    labelStyle: labelStyle
                 )
             }
         }
     }
 
-    // MARK: - Day detail
+    /// How x-axis labels render for the current range size.
+    private var labelStyle: RangeBarChart.LabelStyle {
+        switch mode {
+        case .week: .letters
+        case .month: .dayNumbers
+        case .year: .months
+        case .custom: rangeDailyTotals.count <= 14 ? .letters : .dayNumbers
+        }
+    }
+
+    // MARK: - Custom range sheet
+
+    private var customRangeSheet: some View {
+        NavigationStack {
+            VStack(spacing: 18) {
+                Text("Custom Range")
+                    .font(FlowFont.headline())
+                    .padding(.top, 20)
+
+                HStack(spacing: 16) {
+                    datePicker("From", selection: $customStart)
+                    datePicker("To", selection: $customEnd)
+                }
+
+                HStack(spacing: 8) {
+                    ForEach([(7, "Last 7 days"), (14, "Last 14 days"), (30, "Last 30 days"), (90, "Last 90 days")],
+                            id: \.1) { back, label in
+                        Button {
+                            let cal = Calendar.current
+                            customEnd = Date()
+                            customStart = cal.date(byAdding: .day, value: -back, to: Date()) ?? Date()
+                        } label: {
+                            Text(label)
+                                .font(FlowFont.caption(11))
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Theme.brandPrimary)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(Theme.azure.opacity(0.08)))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Spacer()
+                Button {
+                    if customStart > customEnd { swap(&customStart, &customEnd) }
+                    mode = .custom
+                    showCustomPicker = false
+                } label: {
+                    Text("Apply Range")
+                        .font(FlowFont.headlineSmall())
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Capsule().fill(Theme.flowGradient))
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
+            }
+            .presentationDetents([.height(360)])
+            .background(Theme.card)
+            .navigationTitle("Custom Insights")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private func datePicker(_ title: String, selection: Binding<Date>) -> some View {
+        VStack(spacing: 6) {
+            Text(title)
+                .font(FlowFont.caption())
+                .foregroundStyle(Theme.labelSecondary)
+            DatePicker("", selection: selection, displayedComponents: .date)
+                .labelsHidden()
+        }
+    }
+
+    // MARK: - Day detail (weekly mode)
 
     private var dayDetailCard: some View {
         let day = selectedDay ?? lastDayWithData
@@ -133,16 +344,20 @@ struct AnalyticsView: View {
                             .background(Circle().strokeBorder(Theme.azure.opacity(0.25), lineWidth: 4))
                         Text("\(day, formatter: Self.dayFormatter) Breakdown")
                             .font(FlowFont.headlineSmall())
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 1) {
                         Text("\(Int(unit.value(fromML: total).rounded())) / \(Int(unit.value(fromML: store.dailyGoalML).rounded())) \(unit.symbol)")
                             .font(FlowFont.bodyBold())
                             .foregroundStyle(Theme.brandPrimary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                         Text(percentText(total))
                             .font(FlowFont.caption())
                             .fontWeight(.bold)
-                            .foregroundStyle(Theme.success)
+                            .foregroundStyle(total >= store.dailyGoalML ? Theme.success : Theme.warning)
                     }
                 }
 
@@ -165,7 +380,7 @@ struct AnalyticsView: View {
         }
     }
 
-    // MARK: - Heatmap
+    // MARK: - Heatmap (weekly mode)
 
     private var heatmapCard: some View {
         let heatmap = StatsEngine.monthHeatmap(year: currentYear, month: currentMonth,
@@ -183,25 +398,15 @@ struct AnalyticsView: View {
                             .font(FlowFont.headlineSmall())
                     }
                     Spacer()
-                    HStack(spacing: 2) {
-                        Text("\(metDays) / \(heatmap.count) days")
-                            .font(FlowFont.caption())
-                            .fontWeight(.bold)
-                            .foregroundStyle(Theme.brandPrimary)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                    }
+                    Text("\(metDays) / \(heatmap.count) days")
+                        .font(FlowFont.caption())
+                        .fontWeight(.bold)
+                        .foregroundStyle(Theme.brandPrimary)
                 }
-
-                Text("Heat-map indicator across daily hydration goals")
-                    .font(FlowFont.caption())
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .foregroundStyle(Theme.labelSecondary)
 
                 MonthHeatmapGrid(heatmap: heatmap, unit: unit)
                     .padding(.top, 2)
 
-                // Legend.
                 HStack(spacing: 14) {
                     Spacer()
                     legendSwatch(color: Theme.indigo.opacity(0.35), label: "<80%")
@@ -216,21 +421,9 @@ struct AnalyticsView: View {
 
     // MARK: - Helpers
 
-    private var unit: VolumeUnit { store.profile.unit }
-
-    private var daysMet: Int {
-        StatsEngine.daysGoalMetInWeek(reference: Date(), goalML: store.dailyGoalML, entries: store.entries)
-    }
-
     private var lastDayWithData: Date {
         let withData = store.entries.map { Calendar.current.startOfDay(for: $0.date) }.max()
         return withData ?? Date()
-    }
-
-    private var weekRangeText: String {
-        let days = StatsEngine.weekDays(reference: Date())
-        guard days.count == 7 else { return "" }
-        return "\(Self.rangeFormatter.string(from: days[0])) – \(Self.rangeFormatter.string(from: days[6]))"
     }
 
     private var currentYear: Int {
@@ -274,20 +467,17 @@ struct AnalyticsView: View {
     }()
 }
 
-// MARK: - Weekly bar chart
+// MARK: - Range bar chart
 
-/// Custom-drawn weekly bars with dashed goal line, "Today" marker, and
-/// dashed placeholders for future days (mockup parity).
-struct WeeklyBarChart: View {
-    let reference: Date
-    let entries: [WaterEntry]
+/// Bar chart for arbitrary day ranges: bars auto-thin, labels adapt
+/// (weekday letters → day numbers → month names), goal line on top.
+struct RangeBarChart: View {
+    enum LabelStyle { case letters, dayNumbers, months }
+
+    let totals: [(day: Date, value: Double)]
     let goalML: Double
     let unit: VolumeUnit
-
-    private var totals: [(day: Date, value: Double)] {
-        StatsEngine.weekDays(reference: reference)
-            .map { ($0, StatsEngine.totalML(on: $0, from: entries)) }
-    }
+    let labelStyle: LabelStyle
 
     var body: some View {
         VStack(spacing: 6) {
@@ -305,37 +495,79 @@ struct WeeklyBarChart: View {
             }
             .frame(height: 16)
 
-            HStack(alignment: .bottom, spacing: 8) {
-                ForEach(Array(totals.enumerated()), id: \.element.day) { index, item in
-                    DayBar(
-                        date: item.day,
-                        totalML: item.value,
-                        goalML: goalML,
-                        unit: unit,
-                        isToday: Calendar.current.isDateInToday(item.day),
-                        isFuture: item.day > Date(),
-                        appearanceDelay: Double(index) * 0.05
-                    )
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .bottom, spacing: barSpacing) {
+                    ForEach(Array(totals.enumerated()), id: \.element.day) { index, item in
+                        DayBar(
+                            date: item.day,
+                            totalML: item.value,
+                            goalML: goalML,
+                            unit: unit,
+                            isToday: Calendar.current.isDateInToday(item.day),
+                            isFuture: item.day > Date(),
+                            label: axisLabel(for: item.day),
+                            showValue: totals.count <= 14,
+                            barWidth: barWidth,
+                            appearanceDelay: Double(index) * 0.04
+                        )
+                    }
                 }
+                .padding(.horizontal, 2)
             }
+            .frame(height: 150)
         }
-        .frame(height: 176)
+    }
+
+    private var barWidth: CGFloat {
+        switch totals.count {
+        case ..<9: return 26
+        case 9..<16: return 18
+        case 16..<32: return 12
+        default: return 7
+        }
+    }
+
+    private var barSpacing: CGFloat {
+        switch totals.count {
+        case ..<9: return 8
+        case 9..<16: return 6
+        case 16..<32: return 4
+        default: return 2
+        }
+    }
+
+    private func axisLabel(for day: Date) -> String {
+        let fmt = DateFormatter()
+        switch labelStyle {
+        case .letters:
+            fmt.dateFormat = "EEEEE"
+            return fmt.string(from: day)
+        case .dayNumbers:
+            fmt.dateFormat = "d"
+            return fmt.string(from: day)
+        case .months:
+            fmt.dateFormat = "MMM"
+            return fmt.string(from: day)
+        }
     }
 }
 
-/// One bar in the weekly chart.
-private struct DayBar: View {
+/// One bar in the range chart.
+struct DayBar: View {
     let date: Date
     let totalML: Double
     let goalML: Double
     let unit: VolumeUnit
     let isToday: Bool
     let isFuture: Bool
+    let label: String
+    let showValue: Bool
+    let barWidth: CGFloat
     var appearanceDelay: Double = 0
 
     @State private var appeared = false
 
-    private var maxHeight: CGFloat { 118 }
+    private var maxHeight: CGFloat { 112 }
 
     private var fillFraction: CGFloat {
         guard goalML > 0 else { return 0 }
@@ -344,35 +576,40 @@ private struct DayBar: View {
 
     var body: some View {
         VStack(spacing: 4) {
-            Text(barLabel)
-                .font(.system(size: 10, weight: isToday ? .bold : .medium, design: .rounded))
+            Text(showValue && !isFuture ? "\(Int(unit.value(fromML: totalML).rounded()))" : " ")
+                .font(.system(size: 9, weight: isToday ? .bold : .medium, design: .rounded))
                 .foregroundStyle(isToday ? Theme.brandPrimary : Theme.labelSecondary)
+                .frame(height: 12)
 
             ZStack(alignment: .bottom) {
                 Capsule()
                     .fill(Theme.azure.opacity(0.08))
-                    .frame(height: maxHeight)
+                    .frame(width: barWidth, height: maxHeight)
 
                 if isFuture {
                     Capsule()
                         .fill(Theme.labelTertiary.opacity(0.15))
-                        .frame(height: 24)
+                        .frame(width: barWidth, height: 24)
                         .overlay(Capsule().strokeBorder(style: StrokeStyle(lineWidth: 0.8, dash: [3])).foregroundStyle(Theme.labelTertiary))
-                        .padding(.bottom, 0)
-                } else {
+                } else if totalML > 0 {
                     Capsule()
                         .fill(barGradient)
-                        .frame(height: max(6, fillFraction * maxHeight))
+                        .frame(width: barWidth, height: max(6, fillFraction * maxHeight))
                         .shadow(color: isToday ? Theme.azure.opacity(0.45) : .clear, radius: 8)
                         .scaleEffect(y: appeared ? 1 : 0, anchor: .bottom)
+                } else {
+                    Capsule()
+                        .fill(Theme.azure.opacity(0.12))
+                        .frame(width: barWidth, height: 4)
                 }
             }
             .frame(height: maxHeight)
 
-            Text(weekdayLetter)
-                .font(FlowFont.caption())
+            Text(label)
+                .font(FlowFont.caption(9.5))
                 .fontWeight(isToday ? .bold : .medium)
                 .foregroundStyle(isToday ? Theme.brandPrimary : Theme.labelSecondary)
+                .frame(width: max(barWidth, 16))
         }
         .opacity(isFuture ? 0.55 : 1)
         .onAppear {
@@ -380,16 +617,6 @@ private struct DayBar: View {
                 appeared = true
             }
         }
-    }
-
-    private var barLabel: String {
-        isFuture ? "--" : "\(Int(unit.value(fromML: totalML).rounded()))"
-    }
-
-    private var weekdayLetter: String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "EEEEE"
-        return fmt.string(from: date)
     }
 
     private var barGradient: LinearGradient {
@@ -420,12 +647,14 @@ struct TimelineEntryRow: View {
                 Text("\(entry.date, formatter: Self.timeFormatter) • \(entry.containerName ?? entry.beverage.displayName)")
                     .font(FlowFont.caption())
                     .foregroundStyle(Theme.labelSecondary)
+                    .lineLimit(1)
             }
 
-            Spacer()
+            Spacer(minLength: 6)
 
             Text("+\(Int(unit.value(fromML: entry.volumeML).rounded())) \(unit.symbol)")
                 .font(FlowFont.bodyBold())
+                .fixedSize()
         }
         .padding(.vertical, 5)
     }
@@ -476,7 +705,6 @@ struct MonthHeatmapGrid: View {
         let normalizedBlanks = (leadingBlanks + 7) % 7
 
         VStack(spacing: 5) {
-            // Weekday header.
             HStack(spacing: 5) {
                 ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) { letter in
                     Text(letter)
@@ -486,7 +714,6 @@ struct MonthHeatmapGrid: View {
                 }
             }
 
-            // Grid rows.
             let cells: [Date?] = Array(repeating: nil, count: normalizedBlanks) + days
             let rows = stride(from: 0, to: cells.count, by: 7).map { Array(cells[$0..<min($0 + 7, cells.count)]) }
 
@@ -515,16 +742,10 @@ struct MonthHeatmapGrid: View {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .fill(cellColor(ratio: ratio, isFuture: isFuture))
 
-            if isFuture {
-                Text("\(dayNumber)")
-                    .font(FlowFont.caption(10))
-                    .foregroundStyle(Theme.labelTertiary)
-            } else {
-                Text("\(dayNumber)")
-                    .font(FlowFont.caption(10))
-                    .fontWeight(.semibold)
-                    .foregroundStyle(ratio >= 0.8 ? .white : Theme.labelSecondary)
-            }
+            Text("\(dayNumber)")
+                .font(FlowFont.caption(10))
+                .fontWeight(isFuture ? .regular : .semibold)
+                .foregroundStyle(isFuture ? Theme.labelTertiary : (ratio >= 0.8 ? Color.white : Theme.labelSecondary))
 
             if isToday {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)

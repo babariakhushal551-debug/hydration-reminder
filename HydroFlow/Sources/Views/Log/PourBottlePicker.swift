@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// Interactive bottle volume picker for the Log sheet: the user drags the
-/// water level up/down inside a bottle silhouette to choose the amount.
-/// Fine-tune steppers and preset chips stay available alongside.
+/// water level up/down inside a realistic bottle silhouette to choose the
+/// amount. Fine-tune steppers and preset chips stay available alongside.
 struct PourBottlePicker: View {
 
     /// Selected volume in milliliters (binding into the sheet state).
@@ -17,7 +17,7 @@ struct PourBottlePicker: View {
 
     @State private var dragProgress: Double?
 
-    private let bottleSize = CGSize(width: 130, height: 230)
+    private let bottleSize = CGSize(width: 132, height: 240)
 
     /// Progress 0...1 computed from the volume (drag overrides while active).
     private var progress: Double {
@@ -26,19 +26,31 @@ struct PourBottlePicker: View {
 
     var body: some View {
         ZStack {
-            // Static bottle wall + labels.
             bottleBody
 
             // Gesture layer over the bottle.
-            BottleLevelDragArea(progress: progress) { rawProgress in
-                dragProgress = rawProgress
-                if let ml = mlFor(progress: rawProgress) {
-                    volumeML = ml
-                }
-                Feedback.tick(enabled: hapticsEnabled)
-            } onEnd: {
-                dragProgress = nil
-                Feedback.sipLogged(enabled: hapticsEnabled)
+            GeometryReader { geo in
+                let height = geo.size.height
+
+                Color.clear
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                // Invert: top of bottle = full.
+                                let y = value.location.y
+                                let raw = min(max(1 - (y / height), 0), 1)
+                                dragProgress = raw
+                                if let ml = mlFor(progress: raw) {
+                                    volumeML = ml
+                                }
+                                Feedback.tick(enabled: hapticsEnabled)
+                            }
+                            .onEnded { _ in
+                                dragProgress = nil
+                                Feedback.sipLogged(enabled: hapticsEnabled)
+                            }
+                    )
             }
         }
         .frame(width: bottleSize.width, height: bottleSize.height)
@@ -47,11 +59,15 @@ struct PourBottlePicker: View {
         .accessibilityValue("\(Int(unit.value(fromML: volumeML).rounded())) \(unit.symbol)")
         .accessibilityAdjustableAction { direction in
             switch direction {
-            case .increment: volumeML = min(volumeML + (unit == .fluidOunces ? VolumeUnit.mlPerOz : 50), 2000)
-            case .decrement: volumeML = max(volumeML - (unit == .fluidOunces ? VolumeUnit.mlPerOz : 50), 30)
+            case .increment: volumeML = min(volumeML + step, 2000)
+            case .decrement: volumeML = max(volumeML - step, 30)
             @unknown default: break
             }
         }
+    }
+
+    private var step: Double {
+        unit == .fluidOunces ? VolumeUnit.mlPerOz : 50
     }
 
     // MARK: - Bottle rendering
@@ -62,33 +78,55 @@ struct PourBottlePicker: View {
 
             ZStack {
                 // Glass interior.
-                BottleShape()
-                    .fill(Color.white.opacity(0.6))
-
-                // Liquid level.
-                BottleShape()
-                    .fill(Color.white.opacity(0.001))
-                    .overlay(
-                        LiquidLevelShape(progress: progress, phase: t)
-                            .fill(
-                                LinearGradient(colors: [tint.opacity(0.85), Theme.azure],
-                                               startPoint: .top, endPoint: .bottom)
-                            )
-                            .animation(dragProgress == nil ? .spring(response: 0.5, dampingFraction: 0.8) : nil,
-                                       value: progress)
+                RealisticBottleShape()
+                    .fill(
+                        LinearGradient(colors: [Color.white.opacity(0.30), Color.white.opacity(0.55)],
+                                       startPoint: .top, endPoint: .bottom)
                     )
-                    .clipShape(BottleShape())
+
+                // Liquid level (dual wave), clipped to the bottle.
+                RealisticBottleShape()
+                    .fill(Color.clear)
+                    .overlay(
+                        ZStack {
+                            LiquidLevelShape(progress: progress, phase: t * 0.7 + 1.3)
+                                .fill(LinearGradient(colors: [tint.opacity(0.45), Theme.azure.opacity(0.55)],
+                                                     startPoint: .top, endPoint: .bottom))
+                                .blendMode(.plusLighter)
+                            LiquidLevelShape(progress: progress, phase: t)
+                                .fill(LinearGradient(colors: [tint.opacity(0.9), Theme.azure],
+                                                     startPoint: .top, endPoint: .bottom))
+                        }
+                        .animation(dragProgress == nil ? .spring(response: 0.5, dampingFraction: 0.8) : nil,
+                                   value: progress)
+                    )
+                    .clipShape(RealisticBottleShape())
+
+                // Base glow.
+                Ellipse()
+                    .fill(RadialGradient(colors: [Color.white.opacity(0.30), Color.white.opacity(0.0)],
+                                         center: .center, startRadius: 2, endRadius: 48))
+                    .frame(width: 92, height: 24)
+                    .offset(y: 100)
+                    .allowsHitTesting(false)
+
+                // Left sheen.
+                RoundedRectSrip()
+                    .fill(LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0.05)],
+                                         startPoint: .leading, endPoint: .trailing))
+                    .clipShape(RealisticBottleShape())
+                    .allowsHitTesting(false)
 
                 // Glass outline.
-                BottleShape()
+                RealisticBottleShape()
                     .stroke(
                         LinearGradient(colors: [.white.opacity(0.95), .white.opacity(0.4)],
                                        startPoint: .topLeading, endPoint: .bottomTrailing),
-                        lineWidth: 3.5
+                        lineWidth: 3
                     )
                     .shadow(color: Theme.azure.opacity(0.2), radius: 6, y: 3)
 
-                // Center volume bubble readout.
+                // Center volume readout bubble.
                 VStack(spacing: 2) {
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text("\(Int(unit.value(fromML: volumeML).rounded()))")
@@ -125,36 +163,9 @@ struct PourBottlePicker: View {
     /// snapping to the unit's natural step.
     private func mlFor(progress: Double) -> Double? {
         let rawML = progress * maxML
-        let step = unit == .fluidOunces ? VolumeUnit.mlPerOz : 50.0
         let snapped = (rawML / step).rounded() * step
         let clamped = min(max(snapped, 30), 2000)
         return abs(clamped - volumeML) > 1 ? clamped : nil
-    }
-}
-
-/// Transparent gesture capture area that maps vertical drags to bottle levels.
-private struct BottleLevelDragArea: View {
-    let progress: Double
-    let onChange: (Double) -> Void
-    let onEnd: () -> Void
-
-    var body: some View {
-        GeometryReader { geo in
-            let height = geo.size.height
-
-            Color.clear
-                .contentShape(Rectangle())
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { value in
-                            // Invert: top of bottle = full.
-                            let y = value.location.y
-                            let raw = 1 - (y / height)
-                            onChange(min(max(raw, 0), 1))
-                        }
-                        .onEnded { _ in onEnd() }
-                )
-        }
     }
 }
 

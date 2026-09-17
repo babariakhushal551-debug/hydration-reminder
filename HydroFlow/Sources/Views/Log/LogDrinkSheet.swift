@@ -244,6 +244,8 @@ struct LogDrinkSheet: View {
                         .font(.system(size: 17, weight: .bold))
                     Text(justLogged ? "Logged!" : "Log \(volumeButtonText)")
                         .font(FlowFont.headlineSmall())
+                        .fixedSize(horizontal: true, vertical: false)
+                        .lineLimit(1)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
@@ -283,9 +285,7 @@ struct LogDrinkSheet: View {
         "\(Int(volumeDisplayValue.rounded())) \(unit.symbol) \(selectedBeverage.displayName)"
     }
 
-    private var gaugeProgress: Double {
-        min(volumeML / 950, 1)
-    }
+
 
     private func changeVolume(by deltaML: Double) {
         Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
@@ -321,31 +321,6 @@ struct LogDrinkSheet: View {
             try? await Task.sleep(nanoseconds: 900_000_000)
             dismiss()
         }
-    }
-}
-
-// MARK: - Mini gauge
-
-/// Small liquid gauge in the volume card — fill mirrors stepper value.
-struct MiniLiquidGauge: View {
-    let progress: Double
-    let tint: Color
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Theme.azure.opacity(0.06))
-            Circle()
-                .strokeBorder(Theme.azure.opacity(0.15), lineWidth: 1)
-
-            LiquidShape(phase: Date().timeIntervalSince1970, progress: progress)
-                .fill(
-                    LinearGradient(colors: [tint.opacity(0.85), Theme.azure],
-                                   startPoint: .top, endPoint: .bottom)
-                )
-                .animation(.spring(response: 0.5, dampingFraction: 0.85), value: progress)
-        }
-        .frame(width: 160, height: 160)
     }
 }
 

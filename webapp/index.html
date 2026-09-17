@@ -4,99 +4,53 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <title>HydroFlow — Web Preview</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
   :root{
-    --azure:#007AFF; --aqua:#00C7BE; --indigo:#5856D6; --brand:#0058bc;
-    --canvas:#F2F2F7; --card:#ffffff;
-    --label:rgba(0,0,0,.88); --label2:rgba(60,60,67,.60); --label3:rgba(60,60,67,.30);
-    --hair:rgba(60,60,67,.12); --grad:linear-gradient(135deg,#007AFF,#00C7BE);
+    --azure:#007AFF; --aqua:#00C7BE; --indigo:#5856D6; --brand:#0058BC;
+    --canvas:#faf9fe; --card:#fff; --hair:rgba(60,60,67,.12);
+    --label1:#1a1b1f; --label2:#6b7280; --label3:#aeaeb2;
+    --grad:linear-gradient(135deg,#007AFF,#00C7BE);
   }
-  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%}
-  body{font-family:'Manrope',system-ui,-apple-system,sans-serif;background:#dfe3ea;display:flex;align-items:center;justify-content:center;min-height:100vh;color:var(--label)}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'SF Pro Text',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+  body{background:#0b1120;display:flex;align-items:center;justify-content:center;min-height:100dvh;user-select:none}
   .phone{width:100%;max-width:393px;height:100dvh;max-height:852px;background:var(--canvas);position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,40,90,.25)}
-  @media (min-width:430px){ .phone{border-radius:48px;border:8px solid #1c1c1e;height:852px} }
-  .statusbar{display:flex;justify-content:space-between;align-items:center;padding:14px 28px 4px;font-size:15px;font-weight:700;flex-shrink:0}
-  .statusbar .island{width:118px;height:32px;background:#000;border-radius:20px;margin:0 auto;position:absolute;left:50%;transform:translateX(-50%);top:10px}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;padding:14px 28px 6px;font-size:15px;font-weight:700;position:relative;flex-shrink:0}
+  .island{position:absolute;left:50%;transform:translateX(-50%);top:12px;width:118px;height:32px;background:#000;border-radius:20px}
   .screens{flex:1;position:relative;overflow:hidden}
-  .screen{position:absolute;inset:0;overflow-y:auto;padding:0 16px 110px;display:none;scrollbar-width:none}
+  .screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:0 16px 110px;display:none;scrollbar-width:none}
   .screen::-webkit-scrollbar{display:none}
-  .screen.active{display:block;animation:fadein .25s ease}
-  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .card{background:var(--card);border-radius:20px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04);border:.5px solid rgba(0,0,0,.04);margin-bottom:14px}
+  .screen.active{display:block}
+  .card{background:var(--card);border-radius:20px;padding:16px;margin-top:12px;box-shadow:0 1px 2px rgba(16,24,40,.04);border:.5px solid rgba(0,0,0,.04)}
+  .tile{width:32px;height:32px;border-radius:10px;background:rgba(0,122,255,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
   .eyebrow{font-size:10px;font-weight:800;letter-spacing:.8px;color:var(--brand)}
-  .h-large{font-size:28px;font-weight:800;letter-spacing:-.5px}
-  .h-med{font-size:22px;font-weight:700}
-  .h-sm{font-size:17px;font-weight:700}
+  .cap{font-size:11px;font-weight:600;color:var(--label2)}
+  .cap-b{font-size:10px;font-weight:800;letter-spacing:.4px}
   .body-b{font-size:15px;font-weight:700}
-  .cap{font-size:11px;font-weight:500;color:var(--label2)}
-  .cap-b{font-size:11px;font-weight:700}
-  .tile{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-  .row{display:flex;align-items:center;gap:12px;padding:11px 0}
-  .row + .row{border-top:.5px solid var(--hair)}
-  .btn-grad{width:100%;height:52px;border:none;border-radius:26px;background:var(--grad);color:#fff;font-family:inherit;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 20px rgba(0,122,255,.35);cursor:pointer;transition:transform .15s}
-  .btn-grad:active{transform:scale(.97)}
-  .chip{padding:7px 13px;border-radius:99px;font-size:13px;font-weight:600;background:rgba(0,122,255,.06);border:.5px solid rgba(0,122,255,.16);color:var(--label2);cursor:pointer;white-space:nowrap}
-  .chip.on{background:var(--azure);color:#fff;border-color:var(--azure);font-weight:800}
-  .navbar{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-top:.5px solid var(--hair);display:flex;justify-content:space-around;padding:8px 8px 26px;z-index:50}
-  .navbar button{background:none;border:none;font-family:inherit;font-size:10px;font-weight:600;color:var(--label2);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 10px;border-radius:12px}
-  .navbar button .ic{font-size:22px;line-height:1}
-  .navbar button.on{color:var(--azure);font-weight:800}
-  .navbar button.on .ic{transform:scale(1.08)}
-  .homebar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:rgba(0,0,0,.25);z-index:60;pointer-events:none}
-  .toast{position:absolute;top:64px;left:50%;transform:translateX(-50%) translateY(-20px);background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-radius:99px;padding:10px 18px;font-size:14px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.15);opacity:0;pointer-events:none;transition:all .3s;z-index:80;display:flex;gap:8px;align-items:center}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-  .sheet-back{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:90;opacity:0;pointer-events:none;transition:opacity .25s}
-  .sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;background:var(--canvas);border-radius:28px 28px 0 0;z-index:95;transform:translateY(105%);transition:transform .35s cubic-bezier(.32,.72,.28,1);display:flex;flex-direction:column;overflow:hidden}
-  .phone.sheet-open .sheet-back{opacity:1;pointer-events:auto}
-  .phone.sheet-open .sheet{transform:translateY(0)}
-  .sheet-grab{width:36px;height:5px;border-radius:3px;background:var(--label3);margin:8px auto 0}
-  .sheet-head{display:flex;justify-content:space-between;align-items:center;padding:10px 16px 12px}
-  .sheet-body{overflow-y:auto;padding:0 16px 20px;scrollbar-width:none}
-  .sheet-body::-webkit-scrollbar{display:none}
-  .confetti{position:absolute;inset:0;pointer-events:none;z-index:100}
-  .heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-  .hm-day{aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:rgba(0,122,255,.05);color:var(--label2)}
-  .hm-day.low{background:rgba(88,86,214,.30);color:#fff}
-  .hm-day.mid{background:rgba(0,199,190,.72);color:#fff}
-  .hm-day.full{background:var(--aqua);color:#fff}
-  .hm-day.today{outline:2px solid var(--azure);outline-offset:1px}
-  .bars{display:flex;gap:8px;align-items:flex-end;height:130px;padding-top:6px}
-  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
-  .bar-val{font-size:10px;color:var(--label2);font-weight:600}
-  .bar{width:100%;max-width:26px;border-radius:8px 8px 4px 4px;background:linear-gradient(to top,#5856D6,#a5a3f0);min-height:5px;transition:height .6s cubic-bezier(.3,1.2,.4,1)}
-  .bar.met{background:linear-gradient(to top,#00C7BE,#7ff0ea)}
-  .bar.today{background:linear-gradient(to top,#007AFF,#5eb2ff);box-shadow:0 0 12px rgba(0,122,255,.5);outline:2px solid #d8e2ff}
-  .bar.empty{background:repeating-linear-gradient(45deg,#ececf2,#ececf2 4px,#e0e0e8 4px,#e0e0e8 8px)}
-  .bar-letter{font-size:11px;font-weight:600;color:var(--label2)}
-  .goal-line{position:relative;border-top:1.5px dashed rgba(0,122,255,.4);margin:6px 0 2px}
-  .goal-line span{position:absolute;right:0;top:-9px;background:var(--canvas);font-size:10px;color:var(--brand);font-weight:700;padding:0 4px}
-  .bottle-row{display:flex;align-items:center;justify-content:center;gap:20px;padding:14px 0 4px}
-  .bottle{width:130px;height:230px;position:relative;background:rgba(255,255,255,.55);clip-path:polygon(30% 0,70% 0,70% 13%,86% 17%,100% 25%,100% 92%,95% 98%,87% 100%,13% 100%,5% 98%,0 92%,0 25%,14% 17%,30% 13%);filter:drop-shadow(0 12px 22px rgba(0,88,188,.28))}
-  .bottle .water{position:absolute;left:0;right:0;bottom:0;height:40%;background:linear-gradient(to bottom,#38bdf8,#0284c7 45%,#1d4ed8);transition:height .9s cubic-bezier(.3,1.1,.4,1)}
-  .bottle .water::before{content:"";position:absolute;top:-9px;left:-50%;width:200%;height:18px;background:radial-gradient(ellipse at 50% 100%,transparent 40%,rgba(255,255,255,.4) 48%,transparent 56%);animation:wave 5s ease-in-out infinite}
-  @keyframes wave{0%,100%{transform:translateX(0)}50%{transform:translateX(-12%)}}
-  .bottle-tick{position:absolute;left:8px;font-size:8px;font-weight:800;color:rgba(0,122,255,.55);display:flex;align-items:center;gap:4px;transform:translateY(50%)}
-  .bottle-tick i{display:block;width:10px;height:2px;background:rgba(0,122,255,.35);border-radius:1px}
-  .bottle-info{display:flex;flex-direction:column;gap:8px;min-width:120px}
-  .bottle-info .big{font-size:40px;font-weight:800;letter-spacing:-1px;line-height:1}
-  .bottle-info .big small{font-size:16px;font-weight:700;color:var(--label2)}
-  .pbar{height:8px;border-radius:99px;background:rgba(0,122,255,.12);overflow:hidden}
-  .pbar i{display:block;height:100%;border-radius:99px;background:var(--grad);transition:width .9s cubic-bezier(.3,1.1,.4,1)}
-  .pour-bottle{width:130px;height:230px;position:relative;background:rgba(255,255,255,.6);clip-path:polygon(30% 0,70% 0,70% 13%,86% 17%,100% 25%,100% 92%,95% 98%,87% 100%,13% 100%,5% 98%,0 92%,0 25%,14% 17%,30% 13%);filter:drop-shadow(0 8px 16px rgba(0,88,188,.22));touch-action:none;cursor:grab}
-  .pour-bottle:active{cursor:grabbing}
-  .pour-bottle .water{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(to bottom,rgba(0,199,190,.85),#007AFF);transition:height .12s linear}
-  .pour-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;pointer-events:none}
-  .pour-center .num{font-size:30px;font-weight:800;line-height:1;background:rgba(255,255,255,.85);backdrop-filter:blur(6px);border-radius:14px;padding:8px 14px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.08)}
-  .pour-center .num small{font-size:14px;color:var(--label2)}
-  .pour-center .hint{font-size:9px;color:var(--label3);font-weight:700;margin-top:5px;background:rgba(255,255,255,.7);border-radius:99px;padding:2px 8px}
-  .vessels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-  .vessel{border:none;background:rgba(0,122,255,.05);border:.5px solid rgba(0,122,255,.14);border-radius:16px;padding:10px 4px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .12s}
+  .h-sm{font-size:15px;font-weight:800}
+  .h-med{font-size:20px;font-weight:800}
+  .h-large{font-size:26px;font-weight:800;letter-spacing:-.4px}
+  .big{font-size:38px;font-weight:800;letter-spacing:-.5px;line-height:1}
+  .big small{font-size:15px;color:var(--label2);font-weight:700}
+  .pbar{height:8px;border-radius:99px;background:rgba(0,122,255,.12);overflow:hidden;margin:10px 0}
+  .pbar i{display:block;height:100%;background:var(--grad);border-radius:99px;transition:width .6s cubic-bezier(.32,.72,.28,1)}
+  .navbar{position:absolute;left:0;right:0;bottom:0;display:flex;background:rgba(255,255,255,.72);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:.5px solid rgba(0,0,0,.06);padding:8px 6px calc(14px + env(safe-area-inset-bottom));z-index:50}
+  .navbar button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:700;color:var(--label3);cursor:pointer;font-family:inherit}
+  .navbar button.on{color:var(--azure)}
+  .navbar .ic{font-size:20px;filter:grayscale(1) opacity(.55)}
+  .navbar button.on .ic{filter:none}
+  .bottle-row{display:flex;align-items:center;justify-content:center;gap:22px;padding:6px 0}
+  .bottle{position:relative;width:120px;height:230px;background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,.65));border:3px solid rgba(255,255,255,.9);border-radius:22px 22px 26px 26px;box-shadow:inset 0 4px 14px rgba(0,60,120,.06),0 8px 22px rgba(0,90,180,.14);overflow:hidden;flex-shrink:0}
+  .bottle::before{content:"";position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:52px;height:16px;background:linear-gradient(180deg,#e8f4ff,#cfe6ff);border-radius:6px 6px 2px 2px;box-shadow:0 1px 3px rgba(0,60,120,.18);z-index:3}
+  .water{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#38bdf8,#0284c7 45%,#1d4ed8);transition:height .9s cubic-bezier(.32,.72,.28,1)}
+  .water::before{content:"";position:absolute;top:-7px;left:-60%;width:220%;height:12px;background:radial-gradient(ellipse at 30% 100%,rgba(255,255,255,.85),transparent 55%),radial-gradient(ellipse at 70% 100%,rgba(255,255,255,.65),transparent 55%);border-radius:50%;animation:wave 3.2s ease-in-out infinite}
+  @keyframes wave{0%,100%{transform:translateX(0)}50%{transform:translateX(14px)}}
+  .bottle-tick{position:absolute;left:0;right:0;display:flex;align-items:center;gap:5px;padding-left:6px;font-size:8px;font-weight:800;color:rgba(0,90,188,.55);pointer-events:none}
+  .bottle-tick i{width:12px;height:2px;background:rgba(0,122,255,.35);border-radius:1px}
+  .bottle-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .vessels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+  .vessel{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border-radius:16px;background:rgba(0,122,255,.05);border:.5px solid rgba(0,122,255,.14);cursor:pointer;font-family:inherit;border-width:.5px;border-style:solid;border-color:rgba(0,122,255,.14)}
   .vessel:active{transform:scale(.94)}
   .vessel .vi{width:40px;height:40px;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:19px}
   .vessel b{font-size:12px;font-weight:800}
@@ -109,13 +63,64 @@
   .toggle i::before{content:"";position:absolute;width:26px;height:26px;left:2px;top:2px;background:#fff;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:.25s}
   .toggle input:checked + i{background:var(--grad)}
   .toggle input:checked + i::before{transform:translateX(20px)}
-  .streak{display:inline-flex;align-items:center;gap:4px;background:rgba(0,122,255,.07);border-radius:99px;padding:3px 9px;font-size:11px;font-weight:800;color:var(--brand);margin-top:3px}
   .seg{display:flex;background:rgba(0,122,255,.07);border-radius:12px;padding:3px;margin:10px 0 14px}
   .seg button{flex:1;border:none;background:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--label2);padding:8px;border-radius:9px;cursor:pointer}
   .seg button.on{background:#fff;color:var(--brand);font-weight:800;box-shadow:0 1px 3px rgba(0,0,0,.08)}
   .hdr-row{display:flex;justify-content:space-between;align-items:baseline;padding:14px 4px 6px}
   .stepper-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.9);border:.5px solid rgba(0,122,255,.25);color:var(--azure);font-size:20px;cursor:pointer;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.06)}
   .stepper-btn:active{transform:scale(.9)}
+  .row{display:flex;align-items:center;gap:12px;padding:11px 0}
+  .row + .row{border-top:.5px solid var(--hair)}
+  .chip{border:none;background:rgba(0,122,255,.07);color:var(--label1);font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:99px;cursor:pointer;font-family:inherit}
+  .chip.on{background:var(--azure);color:#fff}
+  .btn-grad{width:100%;border:none;background:var(--grad);color:#fff;font-size:15px;font-weight:800;padding:15px;border-radius:99px;cursor:pointer;font-family:inherit;box-shadow:0 8px 22px rgba(0,122,255,.35);margin-top:14px}
+  .btn-grad:active{transform:scale(.97)}
+  .goal-line{position:relative;height:1px;border-top:1.5px dashed rgba(0,122,255,.5);margin:18px 0 6px}
+  .goal-line span{position:absolute;right:0;top:-9px;background:#eaf4ff;color:var(--brand);font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px}
+  .bars{display:flex;align-items:flex-end;justify-content:space-between;height:170px;padding:0 2px;border-bottom:.5px solid var(--hair);gap:4px}
+  .bar-col{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
+  .bar-val{font-size:9.5px;font-weight:700;color:var(--label2);height:12px}
+  .bar{width:24px;border-radius:10px;background:linear-gradient(180deg,#5856D6aa,#5856D633)}
+  .bar.met{background:linear-gradient(180deg,#00C7BE,#00C7BE99)}
+  .bar.today{background:linear-gradient(180deg,#007AFF,#007AFFcc);box-shadow:0 4px 14px rgba(0,122,255,.45)}
+  .bar.empty{background:#eef0f4;border:.5px dashed #c9cdd6}
+  .bar-letter{font-size:10.5px;font-weight:700;color:var(--label2)}
+  .heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .hm-day{height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--label2);background:rgba(0,122,255,.06)}
+  .hm-day.low{background:rgba(88,86,214,.35);color:#fff}
+  .hm-day.mid{background:rgba(0,199,190,.75);color:#fff}
+  .hm-day.full{background:var(--aqua);color:#fff}
+  .hm-day.today{outline:2px solid var(--azure);outline-offset:-2px}
+  .sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;background:var(--canvas);border-radius:28px 28px 0 0;z-index:95;transform:translateY(105%);transition:transform .35s cubic-bezier(.32,.72,.28,1);display:flex;flex-direction:column;overflow:hidden}
+  #phone.sheet-open .sheet{transform:translateY(0)}
+  .sheet-grab{width:36px;height:4px;background:#d3d6dd;border-radius:99px;margin:8px auto 2px;flex-shrink:0}
+  .sheet-head{display:flex;justify-content:space-between;align-items:center;padding:6px 18px 10px;border-bottom:.5px solid var(--hair);flex-shrink:0}
+  .sheet-body{overflow-y:auto;padding:0 16px 20px;scrollbar-width:none}
+  .sheet-body::-webkit-scrollbar{display:none}
+  .sheet-back{position:absolute;inset:0;background:rgba(10,15,30,.45);z-index:90;opacity:0;pointer-events:none;transition:opacity .3s}
+  #phone.sheet-open .sheet-back{opacity:1;pointer-events:auto}
+  .pour-bottle{position:relative;width:116px;height:200px;background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,.65));border:3px solid rgba(255,255,255,.9);border-radius:20px 20px 24px 24px;box-shadow:inset 0 4px 14px rgba(0,60,120,.06),0 8px 22px rgba(0,90,180,.14);overflow:hidden;flex-shrink:0;touch-action:none;cursor:ns-resize}
+  .pour-bottle::before{content:"";position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:50px;height:16px;background:linear-gradient(180deg,#e8f4ff,#cfe6ff);border-radius:6px 6px 2px 2px;box-shadow:0 1px 3px rgba(0,60,120,.18);z-index:3}
+  .pour-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;pointer-events:none}
+  .pour-center .num{font-size:26px;font-weight:800;color:#fff;text-shadow:0 1px 6px rgba(0,40,90,.5);text-align:center}
+  .pour-center .num small{font-size:13px;font-weight:700}
+  .pour-center .hint{font-size:8.5px;font-weight:800;letter-spacing:1.2px;color:rgba(255,255,255,.85);margin-top:4px;text-shadow:0 1px 4px rgba(0,40,90,.5)}
+  .toast{position:absolute;top:64px;left:50%;transform:translateX(-50%) translateY(-16px);background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:99px;padding:10px 18px;font-size:13px;font-weight:700;box-shadow:0 8px 28px rgba(0,0,0,.14);opacity:0;transition:.3s;z-index:99;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .confetti{position:absolute;inset:0;pointer-events:none;z-index:98}
+  .homebar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:99px;background:rgba(0,0,0,.85);z-index:96}
+  /* Modal overlay sheets (goal, interval, hours, sound, presets, custom range) */
+  .modal{position:absolute;inset:0;z-index:97;display:none;align-items:flex-end;justify-content:center;background:rgba(10,15,30,.45)}
+  .modal.open .modal-panel{transform:translateY(0)}
+  .modal-panel{width:100%;max-height:86%;background:var(--canvas);border-radius:28px 28px 0 0;padding:14px 18px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,.28,1);overflow-y:auto;scrollbar-width:none}
+  .modal-panel::-webkit-scrollbar{display:none}
+  .modal-title{font-size:17px;font-weight:800;text-align:center;margin:4px 0 2px}
+  .modal-sub{font-size:12px;color:var(--label2);text-align:center;margin-bottom:12px}
+  .modal-close{width:100%;border:none;background:rgba(0,122,255,.08);color:var(--brand);font-size:14px;font-weight:800;padding:12px;border-radius:99px;cursor:pointer;font-family:inherit;margin-top:12px}
+  .btn-primary{width:100%;border:none;background:var(--grad);color:#fff;font-size:15px;font-weight:800;padding:14px;border-radius:99px;cursor:pointer;font-family:inherit;box-shadow:0 8px 22px rgba(0,122,255,.3)}
+  select,input[type="text"]{font-family:inherit;font-size:15px;font-weight:600;padding:10px 12px;border-radius:12px;border:.5px solid var(--hair);background:#fff;color:var(--label1);outline:none}
+  input[type="range"]{accent-color:var(--azure);width:100%}
+  input[type="date"],input[type="time"]{font-family:inherit;font-size:14px;font-weight:600;padding:8px;border-radius:10px;border:.5px solid var(--hair)}
 </style>
 </head>
 <body>
@@ -127,13 +132,9 @@
   </div>
 
   <div class="screens">
-    <!-- TODAY -->
     <section class="screen active" id="screen-today"></section>
-    <!-- ANALYTICS -->
     <section class="screen" id="screen-analytics"></section>
-    <!-- HISTORY -->
     <section class="screen" id="screen-history"></section>
-    <!-- SETTINGS -->
     <section class="screen" id="screen-settings"></section>
   </div>
 
@@ -157,6 +158,127 @@
       <button style="border:none;background:none;color:var(--brand);font-size:17px;font-weight:800;font-family:inherit;cursor:pointer" onclick="closeSheet()">Done</button>
     </div>
     <div class="sheet-body" id="sheet-body"></div>
+  </div>
+
+  <!-- GOAL EDITOR -->
+  <div class="modal" id="goal-sheet">
+    <div class="modal-panel">
+      <div class="modal-title">Daily Goal</div>
+      <div class="modal-sub">Profile recommendation: 90 oz · raise or lower freely</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:22px;margin:8px 0">
+        <button class="stepper-btn" onclick="goalNudge(-1)">−</button>
+        <div style="text-align:center;min-width:110px">
+          <div style="font-size:40px;font-weight:800;line-height:1"><span id="goal-val">90</span><span style="font-size:15px;color:var(--label2)"> </span><span id="goal-unit" style="font-size:15px;color:var(--label2)">oz</span></div>
+          <div class="cap" style="margin-top:4px" id="goal-ml">2660 ml</div>
+        </div>
+        <button class="stepper-btn" style="background:var(--azure);color:#fff;border-color:var(--azure)" onclick="goalNudge(1)">+</button>
+      </div>
+      <input type="range" id="goal-slider" min="30" max="170" step="1" oninput="goalSlider(Number(this.value))">
+      <div style="display:flex;justify-content:space-between" class="cap"><span>30 oz</span><span>170 oz</span></div>
+      <button class="btn-primary" id="goal-log" onclick="goalSave()" style="margin-top:16px">Set 90 oz Goal</button>
+      <button class="modal-close" onclick="goalReset()">↺ Use Profile Recommendation</button>
+      <button class="modal-close" onclick="closeGoalEditor()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- INTERVAL PICKER -->
+  <div class="modal" id="interval-sheet">
+    <div class="modal-panel">
+      <div class="modal-title">Reminder Interval</div>
+      <div class="modal-sub">Recommended presets or a fully custom cadence</div>
+      <div class="card" style="padding:4px 16px;margin-top:0" id="interval-list"></div>
+      <div class="card" style="padding:14px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+          <b style="font-size:15px">Custom interval</b>
+          <label class="toggle" style="margin-top:0"><input type="checkbox" id="custom-int-toggle" onchange="toggleCustomInterval(this.checked)"><i></i></label>
+        </div>
+        <div style="text-align:right;margin-top:4px"><b id="custom-int-label" style="color:var(--brand);font-size:13px">Off</b></div>
+        <div id="custom-int-wrap" style="display:none;margin-top:10px">
+          <input type="range" id="custom-int-slider" min="10" max="240" step="5" oninput="customIntervalSlide(Number(this.value))">
+          <div style="display:flex;justify-content:space-between" class="cap"><span>10 min</span><span>240 min</span></div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="closeIntervalPicker()">Done</button>
+    </div>
+  </div>
+
+  <!-- ACTIVE HOURS (24h) -->
+  <div class="modal" id="hours-sheet">
+    <div class="modal-panel">
+      <div class="modal-title">Active Hours</div>
+      <div class="modal-sub">Any window across the full 24 hours — including overnight</div>
+      <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin:6px 0">
+        <select id="hours-start" style="flex:1"></select>
+        <span style="color:var(--label3);font-weight:800">→</span>
+        <select id="hours-end" style="flex:1"></select>
+      </div>
+      <div id="hours-wrap-note" style="display:none;align-items:center;gap:6px;justify-content:center;margin-top:8px;color:var(--indigo);font-size:12px;font-weight:700">🌙 Window crosses midnight — reminders continue overnight</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px">
+        <button class="chip" onclick="presetHours(8,22)">8 AM – 10 PM</button>
+        <button class="chip" onclick="presetHours(7,23)">7 AM – 11 PM</button>
+        <button class="chip" onclick="presetHours(6,0)">6 AM – 12 AM</button>
+        <button class="chip" onclick="presetHours(20,6)">Night shift</button>
+      </div>
+      <button class="btn-primary" onclick="setHours()" style="margin-top:16px">Save</button>
+      <button class="modal-close" onclick="closeHoursPicker()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- SOUND PICKER -->
+  <div class="modal" id="sound-sheet">
+    <div class="modal-panel">
+      <div class="modal-title">Notification Sound</div>
+      <div class="modal-sub">From your iPhone's built-in library — tap to preview</div>
+      <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px">
+        <span style="font-size:14px">🔈</span>
+        <input type="range" id="sound-vol" min="0" max="1" step="0.05" value="0.8" oninput="soundVolumeSlide(Number(this.value))" onchange="previewSound(state.sound)">
+        <span style="font-size:14px">🔊</span>
+      </div>
+      <div class="card" style="padding:4px 16px;margin-top:0;max-height:340px;overflow-y:auto" id="sound-list"></div>
+      <button class="btn-primary" onclick="closeSoundPicker()" style="margin-top:14px">Done</button>
+    </div>
+  </div>
+
+  <!-- CONTAINER PRESETS -->
+  <div class="modal" id="presets-sheet">
+    <div class="modal-panel">
+      <div class="modal-title">Container Presets</div>
+      <div class="modal-sub">Your vessels — shown on the Today quick-log shelf</div>
+      <div class="card" style="padding:4px 16px;margin-top:0" id="presets-list"></div>
+      <button class="modal-close" onclick="addContainer()" style="margin-top:12px">＋ Add Container</button>
+      <button class="btn-primary" onclick="closePresetsEditor()">Done</button>
+    </div>
+  </div>
+
+  <!-- CONTAINER EDIT -->
+  <div class="modal" id="preset-edit-sheet">
+    <div class="modal-panel">
+      <div class="modal-title">Edit Container</div>
+      <div class="modal-sub">Rename, resize, or remove this vessel</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
+        <input type="text" id="preset-name" placeholder="Container name" style="width:100%">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="stepper-btn" onclick="presetNudge(-1)">−</button>
+          <input type="number" id="preset-ml" style="flex:1;text-align:center;font-size:20px;font-weight:800">
+          <button class="stepper-btn" onclick="presetNudge(1)">+</button>
+        </div>
+        <div class="cap" style="text-align:center">Volume in <span id="preset-unit">oz</span> (ml stored internally)</div>
+      </div>
+      <button class="btn-primary" onclick="savePreset()" style="margin-top:16px">Save Container</button>
+      <button class="modal-close" onclick="removeContainer()" style="color:var(--label2)">🗑 Remove Container</button>
+      <button class="modal-close" onclick="closePresetEdit()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- CUSTOM ANALYTICS RANGE -->
+  <div class="modal" id="custom-sheet">
+    <div class="modal-panel">
+      <div class="modal-title">Custom Insights</div>
+      <div class="modal-sub">Analyze any window of the last 90 days</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0" id="custom-chips"></div>
+      <button class="btn-primary" onclick="applyCustom()" style="margin-top:12px">Apply Range</button>
+      <button class="modal-close" onclick="this.closest('.modal').classList.remove('open');setTimeout(()=>this.closest('.modal').style.display='none',250)">Cancel</button>
+    </div>
   </div>
 
   <canvas class="confetti" id="confetti"></canvas>

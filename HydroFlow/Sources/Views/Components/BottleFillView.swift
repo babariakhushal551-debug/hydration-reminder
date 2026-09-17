@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// Water-bottle visualization used on the Today dashboard: a bottle-shaped
-/// vessel that fills from bottom to top with animated waves as the user
-/// drinks, replacing the previous orb-and-bubbles centerpiece.
+/// Water-bottle visualization used on the Today dashboard: a realistic
+/// bottle-shaped vessel (ribbed cap, tapered neck, contoured grip body)
+/// that fills from bottom to top with layered animated waves as the user
+/// drinks, with glass shine, base glow, and capacity ticks.
 struct BottleFillView: View {
 
     /// 0.0 – 1.0+ daily progress (clamped to 1 for the fill level).
@@ -23,15 +24,15 @@ struct BottleFillView: View {
 
             HStack(spacing: 18) {
                 bottle(t: t)
-                    .frame(width: 150, height: 260)
+                    .frame(width: 150, height: 270)
 
                 readout
             }
             .frame(maxWidth: .infinity)
         }
         .onAppear { animateIn = true }
-        .onChange(of: progress) { _, newValue in
-            // Pulse the capacity label whenever a quarter milestone is crossed.
+        .onChange(of: progress) { _, _ in
+            // Pulse the capacity label whenever a milestone is crossed.
             milestonePulse = true
             withAnimation(.easeOut(duration: 0.6)) { milestonePulse = false }
         }
@@ -40,69 +41,88 @@ struct BottleFillView: View {
     // MARK: - Bottle
 
     private func bottle(t: Double) -> some View {
-        ZStack {
-            // Bottle outline (glass wall).
-            BottleShape()
+        let fill = animateIn ? min(max(progress, 0.02), 1) : 0.02
+
+        return ZStack {
+            // Glass interior.
+            RealisticBottleShape()
+                .fill(
+                    LinearGradient(colors: [Color.white.opacity(0.30), Color.white.opacity(0.55)],
+                                   startPoint: .top, endPoint: .bottom)
+                )
+
+            // Liquid with dual-layer waves, clipped to the bottle.
+            RealisticBottleShape()
+                .fill(Color.clear)
+                .overlay(
+                    ZStack {
+                        // Back wave (slower, offset phase).
+                        LiquidLevelShape(progress: fill, phase: t * 0.7 + 1.3)
+                            .fill(Theme.liquidGradient.opacity(0.55))
+                            .blendMode(.plusLighter)
+
+                        // Front wave (main body).
+                        LiquidLevelShape(progress: fill, phase: t)
+                            .fill(Theme.liquidGradient)
+                    }
+                    .animation(.spring(response: 0.9, dampingFraction: 0.82), value: fill)
+                )
+                .clipShape(RealisticBottleShape())
+
+            // Caustic glow pooled at the base.
+            Ellipse()
+                .fill(
+                    RadialGradient(colors: [Color.white.opacity(0.35), Color.white.opacity(0.0)],
+                                   center: .center, startRadius: 2, endRadius: 55)
+                )
+                .frame(width: 110, height: 30)
+                .offset(y: 112)
+                .allowsHitTesting(false)
+
+            // Left specular sheen.
+            RoundedRectSrip()
+                .fill(
+                    LinearGradient(colors: [.white.opacity(0.60), .white.opacity(0.04)],
+                                   startPoint: .leading, endPoint: .trailing)
+                )
+                .clipShape(RealisticBottleShape())
+                .allowsHitTesting(false)
+
+            // Right thin counter-highlight.
+            RealisticBottleShape()
+                .strokeBorder(Color.white.opacity(0.35), lineWidth: 1)
+                .blur(radius: 0.6)
+                .allowsHitTesting(false)
+
+            // Glass outline.
+            RealisticBottleShape()
                 .stroke(
-                    LinearGradient(colors: [.white.opacity(0.95), .white.opacity(0.35), .white.opacity(0.85)],
+                    LinearGradient(colors: [.white.opacity(0.95), .white.opacity(0.40), .white.opacity(0.85)],
                                    startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 4
+                    lineWidth: 3.5
                 )
                 .shadow(color: Theme.azure.opacity(0.25), radius: 8, y: 4)
 
-            // Glass interior.
-            BottleShape()
-                .fill(Color.white.opacity(0.55))
-
-            // Liquid, clipped to the bottle interior.
-            BottleShape()
-                .fill(Color.white.opacity(0.001))
-                .overlay(
-                    LiquidLevelShape(progress: animateIn ? min(progress, 1) : 0, phase: t)
-                        .fill(Theme.liquidGradient)
-                        .animation(.spring(response: 1.0, dampingFraction: 0.82), value: animateIn)
-                        .animation(.spring(response: 1.0, dampingFraction: 0.82), value: progress)
-                )
-                .clipShape(BottleShape())
-
-            // Caustic glow at the liquid base.
-            BottleShape()
-                .fill(
-                    LinearGradient(colors: [.clear, .white.opacity(0.22)],
-                                   startPoint: .center, endPoint: .bottom)
-                )
-                .clipShape(BottleShape())
-                .allowsHitTesting(false)
-
-            // Specular highlight strip (left glass sheen).
-            RoundedRectSrip()
-                .fill(
-                    LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0.05)],
-                                   startPoint: .leading, endPoint: .trailing)
-                )
-                .clipShape(BottleShape())
-                .allowsHitTesting(false)
-
-            // Capacity tick marks (25% / 50% / 75%).
+            // Capacity ticks along the straight body.
             ForEach([0.25, 0.5, 0.75], id: \.self) { frac in
                 tickMark(fraction: frac)
             }
         }
     }
 
-    private func tickMark(fraction: CGFloat) -> some View {
-        let bottleHeight: CGFloat = 260
-        // The straight wall section spans ~0.08–0.92 of the shape height.
-        let y = bottleHeight * (0.92 - 0.84 * fraction)
+    private func tickMark(fraction: Double) -> some View {
+        let bottleHeight: CGFloat = 270
+        // Straight wall spans ~0.30–0.96 of the shape height.
+        let y = bottleHeight * (0.96 - 0.66 * fraction)
         return HStack(spacing: 5) {
             RoundedRectangle(cornerRadius: 1)
-                .fill(Theme.azure.opacity(0.30))
+                .fill(Theme.azure.opacity(0.35))
                 .frame(width: 12, height: 2)
             Text("\(Int(fraction * 100))%")
                 .font(.system(size: 8, weight: .bold, design: .rounded))
-                .foregroundStyle(Theme.azure.opacity(0.5))
+                .foregroundStyle(Theme.azure.opacity(0.55))
         }
-        .position(x: 26, y: y)
+        .position(x: 28, y: y)
         .allowsHitTesting(false)
     }
 
@@ -158,64 +178,95 @@ struct BottleFillView: View {
 
 // MARK: - Shapes
 
-/// Bottle silhouette: neck at top, shoulders, straight body, rounded base.
-/// Designed in a normalized 0...1 space and scaled to the given rect.
-struct BottleShape: Shape {
+/// Realistic water bottle: ribbed cap with rim, tapered neck, smooth
+/// shoulder, slightly waisted body with grip indentations, rounded base.
+/// Drawn in normalized space (x: 0–1 across width, y: 0–1 down height).
+struct RealisticBottleShape: Shape {
     func path(in rect: CGRect) -> Path {
         var p = Path()
         let w = rect.width
         let h = rect.height
 
-        // Proportions of the bottle (fractions of height).
-        let capTop: CGFloat = 0.0
-        let neckBottom: CGFloat = 0.14
-        let shoulderTop: CGFloat = 0.14
-        let shoulderBottom: CGFloat = 0.26
+        // Key vertical stations (fractions of height).
+        let capTop: CGFloat = 0.00
+        let capBottom: CGFloat = 0.075        // ribbed cap
+        let neckTop: CGFloat = 0.075
+        let neckBottom: CGFloat = 0.175       // tapered neck + thread hint
+        let shoulderBottom: CGFloat = 0.30    // shoulder curve out to body
+        let waistTop: CGFloat = 0.52          // grip waist begins
+        let waistBottom: CGFloat = 0.62       // grip waist ends
 
-        let neckWidth: CGFloat = w * 0.42
-        let bodyLeft = rect.minX
-        let bodyRight = rect.maxX
+        let capHalf: CGFloat = w * 0.20
+        let neckHalf: CGFloat = w * 0.24
+        let cx = rect.midX
 
-        // Start at top-left of cap.
-        p.move(to: CGPoint(x: w / 2 - neckWidth / 2, y: h * capTop))
-        // Cap lip.
-        p.addLine(to: CGPoint(x: w / 2 + neckWidth / 2, y: h * capTop))
-        // Neck down to shoulder.
-        p.addLine(to: CGPoint(x: w / 2 + neckWidth / 2, y: h * shoulderTop))
-        // Shoulder curve out to body right.
+        // ---- Cap (slightly wider than neck, rounded top corners) ----
+        let capRect = CGRect(x: cx - capHalf, y: h * capTop,
+                             width: capHalf * 2, height: h * (capBottom - capTop))
+        p.addRoundedRect(in: capRect, cornerSize: CGSize(width: capHalf * 0.35, height: capHalf * 0.35))
+
+        // ---- Neck: down and outward from cap rim to shoulder ----
+        p.move(to: CGPoint(x: cx + capHalf * 0.82, y: h * neckTop))
+        p.addLine(to: CGPoint(x: cx + neckHalf, y: h * (neckTop + (neckBottom - neckTop) * 0.55)))
+        // thread ridge hint
+        p.addLine(to: CGPoint(x: cx + neckHalf * 0.92, y: h * (neckTop + (neckBottom - neckTop) * 0.75)))
+        // Shoulder curve out to full body width.
         p.addCurve(
-            to: CGPoint(x: bodyRight, y: h * shoulderBottom),
-            control1: CGPoint(x: w / 2 + neckWidth / 2 + (bodyRight - w / 2 - neckWidth / 2) * 0.15, y: h * shoulderTop),
-            control2: CGPoint(x: bodyRight, y: h * shoulderBottom - (h * (shoulderBottom - shoulderTop)) * 0.45)
+            to: CGPoint(x: rect.maxX - w * 0.02, y: h * shoulderBottom),
+            control1: CGPoint(x: cx + neckHalf + (rect.maxX - cx - neckHalf) * 0.25, y: h * neckBottom),
+            control2: CGPoint(x: rect.maxX, y: h * (neckBottom + (shoulderBottom - neckBottom) * 0.45))
         )
-        // Right wall down to rounded base.
-        p.addLine(to: CGPoint(x: bodyRight, y: h * 0.90))
-        p.addQuadCurve(
-            to: CGPoint(x: bodyRight - w * 0.18, y: h),
-            control: CGPoint(x: bodyRight, y: h)
-        )
-        p.addLine(to: CGPoint(x: bodyLeft + w * 0.18, y: h))
-        p.addQuadCurve(
-            to: CGPoint(x: bodyLeft, y: h * 0.90),
-            control: CGPoint(x: bodyLeft, y: h)
-        )
-        // Left wall up to left shoulder.
-        p.addLine(to: CGPoint(x: bodyLeft, y: h * shoulderBottom))
-        // Shoulder curve in to neck.
+
+        // ---- Right wall with subtle waist (grip) ----
+        p.addLine(to: CGPoint(x: rect.maxX - w * 0.02, y: h * waistTop))
         p.addCurve(
-            to: CGPoint(x: w / 2 - neckWidth / 2, y: h * shoulderTop),
-            control1: CGPoint(x: bodyLeft, y: h * shoulderBottom - (h * (shoulderBottom - shoulderTop)) * 0.45),
-            control2: CGPoint(x: w / 2 - neckWidth / 2 - (w / 2 - neckWidth / 2 - bodyLeft) * 0.15, y: h * shoulderTop)
+            to: CGPoint(x: rect.maxX - w * 0.05, y: h * (waistTop + (waistBottom - waistTop) * 0.5)),
+            control1: CGPoint(x: rect.maxX - w * 0.02, y: h * (waistTop + (waistBottom - waistTop) * 0.25)),
+            control2: CGPoint(x: rect.maxX - w * 0.05, y: h * (waistTop + (waistBottom - waistTop) * 0.25))
         )
-        // Neck up to cap.
-        p.addLine(to: CGPoint(x: w / 2 - neckWidth / 2, y: h * capTop))
+        p.addCurve(
+            to: CGPoint(x: rect.maxX - w * 0.02, y: h * waistBottom),
+            control1: CGPoint(x: rect.maxX - w * 0.05, y: h * (waistTop + (waistBottom - waistTop) * 0.75)),
+            control2: CGPoint(x: rect.maxX - w * 0.02, y: h * (waistTop + (waistBottom - waistTop) * 0.75))
+        )
+
+        // ---- Rounded base ----
+        p.addLine(to: CGPoint(x: rect.maxX - w * 0.02, y: h * 0.93))
+        p.addQuadCurve(to: CGPoint(x: rect.maxX - w * 0.16, y: h * 0.995),
+                       control: CGPoint(x: rect.maxX - w * 0.02, y: h * 0.995))
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.16, y: h * 0.995))
+        p.addQuadCurve(to: CGPoint(x: rect.minX + w * 0.02, y: h * 0.93),
+                       control: CGPoint(x: rect.minX + w * 0.02, y: h * 0.995))
+
+        // ---- Left wall (mirror waist) ----
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.02, y: h * waistBottom))
+        p.addCurve(
+            to: CGPoint(x: rect.minX + w * 0.05, y: h * (waistTop + (waistBottom - waistTop) * 0.5)),
+            control1: CGPoint(x: rect.minX + w * 0.02, y: h * (waistTop + (waistBottom - waistTop) * 0.75)),
+            control2: CGPoint(x: rect.minX + w * 0.05, y: h * (waistTop + (waistBottom - waistTop) * 0.75))
+        )
+        p.addCurve(
+            to: CGPoint(x: rect.minX + w * 0.02, y: h * waistTop),
+            control1: CGPoint(x: rect.minX + w * 0.05, y: h * (waistTop + (waistBottom - waistTop) * 0.25)),
+            control2: CGPoint(x: rect.minX + w * 0.02, y: h * (waistTop + (waistBottom - waistTop) * 0.25))
+        )
+        p.addLine(to: CGPoint(x: rect.minX + w * 0.02, y: h * shoulderBottom))
+
+        // ---- Left shoulder up to neck ----
+        p.addCurve(
+            to: CGPoint(x: cx - neckHalf * 0.92, y: h * (neckTop + (neckBottom - neckTop) * 0.75)),
+            control1: CGPoint(x: rect.minX, y: h * (neckBottom + (shoulderBottom - neckBottom) * 0.45)),
+            control2: CGPoint(x: cx - neckHalf - (cx - neckHalf - rect.minX) * 0.25, y: h * neckBottom)
+        )
+        p.addLine(to: CGPoint(x: cx - neckHalf, y: h * (neckTop + (neckBottom - neckTop) * 0.55)))
+        p.addLine(to: CGPoint(x: cx - capHalf * 0.82, y: h * neckTop))
         p.closeSubpath()
         return p
     }
 }
 
 /// Liquid fill inside the bottle: a wave-topped rectangle whose height maps
-/// to progress, with the wave surface inside the straight body section.
+/// to progress, with the wave surface living in the straight body section.
 struct LiquidLevelShape: Shape {
     var progress: Double   // 0...1
     let phase: Double
@@ -230,27 +281,26 @@ struct LiquidLevelShape: Shape {
         let w = rect.width
         let h = rect.height
 
-        // Fill range mapped to the straight body (0.26 → 0.98 of height),
-        // so the wave lives on the straight walls, not the curved shoulder.
-        let topFrac: CGFloat = 0.26
-        let bottomFrac: CGFloat = 0.98
+        // Fill range mapped to the straight body (0.30 → 0.97 of height).
+        let topFrac: CGFloat = 0.30
+        let bottomFrac: CGFloat = 0.97
         let bodyTop = h * topFrac
         let bodyBottom = h * bottomFrac
         let level = bodyBottom - (bodyBottom - bodyTop) * CGFloat(min(max(progress, 0), 1))
 
-        // Wave surface.
-        let amplitude = min((bodyBottom - bodyTop) * 0.05, 6)
+        // Gentle dual-frequency wave.
+        let amplitude = min((bodyBottom - bodyTop) * 0.045, 6)
         p.move(to: CGPoint(x: 0, y: level))
         var x: CGFloat = 0
         while x <= w {
             let rel = Double(x / w)
-            let y = Double(level) + sin(rel * .pi * 2.4 + phase * 1.5) * amplitude
+            let y = Double(level)
+                + sin(rel * .pi * 2.2 + phase * 1.6) * amplitude
+                + sin(rel * .pi * 4.6 - phase * 0.9) * amplitude * 0.35
             p.addLine(to: CGPoint(x: x, y: CGFloat(y)))
             x += 4
         }
         p.addLine(to: CGPoint(x: w, y: level))
-        // Close down to the bottom (a bit beyond base rounding is fine —
-        // the parent clips to the bottle shape).
         p.addLine(to: CGPoint(x: w, y: h))
         p.addLine(to: CGPoint(x: 0, y: h))
         p.closeSubpath()
@@ -263,9 +313,9 @@ struct RoundedRectSrip: Shape {
     func path(in rect: CGRect) -> Path {
         var p = Path()
         let strip = CGRect(x: rect.minX + rect.width * 0.10,
-                           y: rect.minY + rect.height * 0.28,
-                           width: rect.width * 0.10,
-                           height: rect.height * 0.55)
+                           y: rect.minY + rect.height * 0.30,
+                           width: rect.width * 0.09,
+                           height: rect.height * 0.56)
         p.addRoundedRect(in: strip, cornerSize: CGSize(width: strip.width / 2, height: strip.width / 2))
         return p
     }

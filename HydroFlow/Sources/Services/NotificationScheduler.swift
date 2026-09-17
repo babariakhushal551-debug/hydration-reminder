@@ -2,7 +2,7 @@ import Foundation
 import UserNotifications
 
 /// Schedules local "nudge" notifications between active hours,
-/// respecting bedtime mode and the chosen interval.
+/// respecting bedtime mode, custom intervals, and the chosen sound.
 final class NotificationScheduler: ObservableObject {
 
     static let shared = NotificationScheduler()
@@ -34,30 +34,45 @@ final class NotificationScheduler: ObservableObject {
     // MARK: - Scheduling
 
     /// Plans the reminder times from settings. Exposed for unit testing:
-    /// returns hour/minute pairs covering the active window at the chosen interval.
+    /// returns hour/minute pairs covering the active window at the chosen
+    /// interval. Supports windows that wrap past midnight (e.g. 20:00 → 06:00)
+    /// and fully custom minute cadences.
     static func plannedReminderTimes(settings: ReminderSettings) -> [(hour: Int, minute: Int)] {
         guard settings.remindersEnabled, !settings.bedtimeMode else { return [] }
 
         var times: [(hour: Int, minute: Int)] = []
-        let intervalHours = settings.interval.rawValue
+        let stepMinutes = max(5, settings.effectiveIntervalMinutes)
+        let startTotal = settings.activeStartHour * 60
+        // Window length in minutes; wraps past midnight when start >= end.
+        let windowMinutes = settings.wrapsMidnight
+            ? (24 * 60 - startTotal) + settings.activeEndHour * 60
+            : settings.activeEndHour * 60 - startTotal
 
-        var slot: Double = 0
-        while true {
-            let totalMinutes = Int((Double(settings.activeStartHour) * 60 + slot * 60).rounded())
-            let hour = totalMinutes / 60
-            guard hour < settings.activeEndHour else { break }
-            times.append((hour: hour, minute: totalMinutes % 60))
-            slot += intervalHours
+        var offset: Double = 0
+        while offset < Double(windowMinutes) {
+            let totalMinutes = Int((Double(startTotal) + offset).rounded()) % (24 * 60)
+            times.append((hour: totalMinutes / 60, minute: totalMinutes % 60))
+            offset += stepMinutes
         }
         return times
     }
 
     /// Rebuild the full reminder schedule from settings.
     /// Call after any settings change, app launch, or permission grant.
-    func reschedule(settings: ReminderSettings) {
+    func reschedule(settings: ReminderSettings, soundManager: SoundManager? = nil) {
         center.removeAllPendingNotificationRequests()
 
         guard settings.remindersEnabled, !settings.bedtimeMode else { return }
+
+        // Resolve the notification sound up-front (installs system files if needed).
+        let sound: UNNotificationSound
+        if let soundManager {
+            let option = soundManager.option(forID: settings.soundName)
+            if let option { _ = soundManager.installForNotifications(option) }
+            sound = soundManager.notificationSound(forID: settings.soundName)
+        } else {
+            sound = .default
+        }
 
         for (index, time) in Self.plannedReminderTimes(settings: settings).enumerated() {
             var comps = DateComponents()
@@ -67,7 +82,7 @@ final class NotificationScheduler: ObservableObject {
             let content = UNMutableNotificationContent()
             content.title = "Time to drink water 💧"
             content.body = Self.messages[index % Self.messages.count]
-            content.sound = .default
+            content.sound = sound
             content.categoryIdentifier = "REMINDER"
 
             let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)

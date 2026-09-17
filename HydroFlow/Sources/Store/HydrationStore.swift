@@ -17,6 +17,9 @@ final class HydrationStore: ObservableObject {
     /// Daily goal in milliliters, plus any weather bonus applied today.
     @Published private(set) var weatherBonusML: Double = 0
 
+    /// User-editable quick-log vessels (Settings → Container Presets).
+    @Published var containerPresets: [ContainerPreset] { didSet { scheduleSave() } }
+
     // MARK: - Persistence
 
     private let queue = DispatchQueue(label: "com.hydroflow.store", qos: .utility)
@@ -30,6 +33,7 @@ final class HydrationStore: ObservableObject {
         var profile: UserProfile
         var reminderSettings: ReminderSettings
         var hasCompletedOnboarding: Bool
+        var containerPresets: [ContainerPreset]?
         var schemaVersion: Int = 1
     }
 
@@ -46,10 +50,12 @@ final class HydrationStore: ObservableObject {
             profile = state.profile
             reminderSettings = state.reminderSettings
             hasCompletedOnboarding = state.hasCompletedOnboarding
+            containerPresets = state.containerPresets ?? ContainerPreset.defaults
         } else {
             profile = UserProfile()
             reminderSettings = ReminderSettings()
             hasCompletedOnboarding = false
+            containerPresets = ContainerPreset.defaults
         }
 
         refreshWeatherBonus(now: now())
@@ -57,9 +63,24 @@ final class HydrationStore: ObservableObject {
 
     // MARK: - Derived values
 
-    /// Today's daily goal (profile goal + dynamic weather bonus if enabled).
+    /// Today's daily goal: the user's manual override when set, otherwise the
+    /// profile-calculated goal — plus any dynamic weather bonus if enabled.
     var dailyGoalML: Double {
-        GoalCalculator.dailyGoalML(profile: profile) + weatherBonusML
+        (profile.customGoalML ?? GoalCalculator.dailyGoalML(profile: profile)) + weatherBonusML
+    }
+
+    /// The goal before weather bonus (what the goal editor edits).
+    var baseGoalML: Double {
+        profile.customGoalML ?? GoalCalculator.dailyGoalML(profile: profile)
+    }
+
+    /// Quick-log vessels shown on Today, derived from the editable presets.
+    var quickLogVessels: [QuickLogVessel] {
+        containerPresets.map { preset in
+            QuickLogVessel(id: preset.id.uuidString, name: preset.name,
+                           beverage: preset.beverage, volumeML: preset.volumeML,
+                           symbol: preset.symbolName)
+        }
     }
 
     /// Hydration credit logged so far today, in milliliters.
@@ -165,7 +186,8 @@ final class HydrationStore: ObservableObject {
             entries: entries,
             profile: profile,
             reminderSettings: reminderSettings,
-            hasCompletedOnboarding: hasCompletedOnboarding
+            hasCompletedOnboarding: hasCompletedOnboarding,
+            containerPresets: containerPresets
         )
         guard let data = try? encoder.encode(state) else { return }
         // Atomic write prevents corruption if the app is killed mid-save.

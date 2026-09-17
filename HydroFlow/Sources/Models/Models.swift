@@ -113,7 +113,7 @@ enum BeverageType: String, Codable, CaseIterable, Identifiable {
         case .coffee: "cup.and.saucer.fill"
         case .coconutWater: "snowflake"
         case .juice: "carrot.fill"
-        case .milk: "carton.fill"
+        case .milk: "waterbottle.fill"
         case .soda: "takeoutbag.and.cup.and.straw.fill"
         case .energyDrink: "flame.fill"
         case .alcohol: "wineglass.fill"
@@ -243,6 +243,7 @@ struct UserProfile: Codable, Equatable {
     var activity: ActivityLevel = .moderate
     var climate: Climate = .temperate
     var unit: VolumeUnit = .fluidOunces
+    var customGoalML: Double?
 
     /// Body weight in the user's preferred display unit (lbs or kg).
     var displayWeight: Double {
@@ -273,22 +274,59 @@ struct WaterEntry: Codable, Identifiable, Equatable {
 
 // MARK: - Reminder settings
 
-/// Reminder cadence options (hours between nudges).
+/// Reminder cadence presets (hours between nudges). A fully custom
+/// minute value lives in `ReminderSettings.customIntervalMinutes`.
 enum ReminderInterval: Double, Codable, CaseIterable, Identifiable {
+    case thirtyMinutes = 0.5
+    case fortyFiveMinutes = 0.75
     case oneHour = 1
     case ninetyMinutes = 1.5
     case twoHours = 2
+    case twoHalfHours = 2.5
     case threeHours = 3
 
     var id: Double { rawValue }
 
     var displayName: String {
         switch self {
+        case .thirtyMinutes: "Every 30 Minutes"
+        case .fortyFiveMinutes: "Every 45 Minutes"
         case .oneHour: "Every Hour"
         case .ninetyMinutes: "Every 1.5 Hours"
         case .twoHours: "Every 2 Hours"
+        case .twoHalfHours: "Every 2.5 Hours"
         case .threeHours: "Every 3 Hours"
         }
+    }
+}
+
+/// A named drinking vessel the user can one-tap log with. Editable in
+/// Settings → Container Presets; surfaced on the Today quick-log shelf.
+struct ContainerPreset: Codable, Identifiable, Equatable {
+    var id: UUID = UUID()
+    var name: String
+    var volumeML: Double
+    var symbolName: String
+    var beverage: BeverageType = .water
+
+    /// Curated SF Symbols that are known-valid on iOS 17.
+    static let availableSymbols = [
+        "cup.and.saucer.fill", "water.glass.fill", "mug.fill",
+        "waterbottle.fill", "takeoutbag.and.cup.and.straw.fill",
+        "testtube.fill", "drop.fill"
+    ]
+
+    static let defaults: [ContainerPreset] = [
+        .init(name: "Cup", volumeML: 240, symbolName: "cup.and.saucer.fill"),
+        .init(name: "Glass", volumeML: 355, symbolName: "water.glass.fill"),
+        .init(name: "Mug", volumeML: 473, symbolName: "mug.fill"),
+        .init(name: "Bottle", volumeML: 710, symbolName: "waterbottle.fill"),
+        .init(name: "Jug", volumeML: 950, symbolName: "takeoutbag.and.cup.and.straw.fill")
+    ]
+
+    /// Volume formatted in the given unit (e.g. "12 oz").
+    func volumeText(unit: VolumeUnit) -> String {
+        "\(Int(unit.value(fromML: volumeML).rounded())) \(unit.symbol)"
     }
 }
 
@@ -296,11 +334,13 @@ enum ReminderInterval: Double, Codable, CaseIterable, Identifiable {
 struct ReminderSettings: Codable, Equatable {
     /// Master switch for drink reminders.
     var remindersEnabled: Bool = true
-    /// Hours between nudges during active hours.
+    /// Hours between nudges during active hours (preset).
     var interval: ReminderInterval = .ninetyMinutes
+    /// Fully custom cadence in minutes; wins over `interval` when set.
+    var customIntervalMinutes: Double?
     /// Active window start hour (0–23), e.g. 8 for 8 AM.
     var activeStartHour: Int = 8
-    /// Active window end hour (0–23), e.g. 22 for 10 PM.
+    /// Active window end hour (0–23), e.g. 22 for 10 PM. May wrap past midnight.
     var activeEndHour: Int = 22
     /// Bedtime mode mutes everything overnight regardless of window.
     var bedtimeMode: Bool = true
@@ -308,6 +348,20 @@ struct ReminderSettings: Codable, Equatable {
     var dynamicWeather: Bool = true
     /// Haptic feedback on logging.
     var hapticsEnabled: Bool = true
+    /// Selected notification sound (SoundManager option id, "default" = system).
+    var soundName: String = "default"
+    /// Preview/alert volume preference 0...1 (used for in-app preview).
+    var soundVolume: Double = 0.8
+
+    /// Minutes between reminders: custom value if set, else the preset.
+    var effectiveIntervalMinutes: Double {
+        customIntervalMinutes ?? interval.rawValue * 60
+    }
+
+    /// Whether the active window crosses midnight (start ≥ end, non-equal).
+    var wrapsMidnight: Bool {
+        activeStartHour >= activeEndHour
+    }
 
     /// Active window start as clock time.
     var activeStart: Date {
@@ -319,10 +373,37 @@ struct ReminderSettings: Codable, Equatable {
         Calendar.current.date(bySettingHour: activeEndHour, minute: 0, second: 0, of: Date()) ?? Date()
     }
 
+    /// Human text for the interval row ("Every 90 min").
+    var intervalDisplayText: String {
+        if let custom = customIntervalMinutes {
+            let mins = Int(custom.rounded())
+            return mins % 60 == 0 ? "Every \(mins / 60) h" : "Every \(mins) min"
+        }
+        return interval.displayName
+    }
+
     /// Time-of-day formatter for active hours row.
     static let hourFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "h:mm a"
         return f
     }()
+
+    // Backward-compatible decoding: new fields default when absent, so
+    // state files written by earlier versions keep loading.
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        remindersEnabled = try c.decodeIfPresent(Bool.self, forKey: .remindersEnabled) ?? true
+        interval = try c.decodeIfPresent(ReminderInterval.self, forKey: .interval) ?? .ninetyMinutes
+        customIntervalMinutes = try c.decodeIfPresent(Double.self, forKey: .customIntervalMinutes)
+        activeStartHour = try c.decodeIfPresent(Int.self, forKey: .activeStartHour) ?? 8
+        activeEndHour = try c.decodeIfPresent(Int.self, forKey: .activeEndHour) ?? 22
+        bedtimeMode = try c.decodeIfPresent(Bool.self, forKey: .bedtimeMode) ?? true
+        dynamicWeather = try c.decodeIfPresent(Bool.self, forKey: .dynamicWeather) ?? true
+        hapticsEnabled = try c.decodeIfPresent(Bool.self, forKey: .hapticsEnabled) ?? true
+        soundName = try c.decodeIfPresent(String.self, forKey: .soundName) ?? "default"
+        soundVolume = try c.decodeIfPresent(Double.self, forKey: .soundVolume) ?? 0.8
+    }
 }

@@ -201,6 +201,64 @@ final class HydroFlowTests: XCTestCase {
         XCTAssertTrue(NotificationScheduler.plannedReminderTimes(settings: s).isEmpty)
     }
 
+    // MARK: - Custom intervals & wrap-midnight windows
+
+    func testCustomIntervalOverridesPreset() {
+        var s = ReminderSettings()
+        s.remindersEnabled = true
+        s.bedtimeMode = false
+        s.interval = .twoHours
+        s.customIntervalMinutes = 30
+        s.activeStartHour = 8
+        s.activeEndHour = 10
+
+        let times = NotificationScheduler.plannedReminderTimes(settings: s)
+        // 30-minute cadence across 8→10 gives 8:00, 8:30, 9:00, 9:30.
+        XCTAssertEqual(times.count, 4)
+        XCTAssertEqual(times[1].minute, 30)
+    }
+
+    func testWrapMidnightWindowSpansTwoDays() {
+        var s = ReminderSettings()
+        s.remindersEnabled = true
+        s.bedtimeMode = false
+        s.interval = .twoHours
+        s.activeStartHour = 20
+        s.activeEndHour = 6
+
+        let times = NotificationScheduler.plannedReminderTimes(settings: s)
+        XCTAssertEqual(times.first?.hour, 20)
+        XCTAssertTrue(times.contains(where: { $0.hour == 0 }), "Should schedule past midnight")
+        XCTAssertFalse(times.contains(where: { $0.hour == 6 }), "End hour is exclusive")
+        // 20, 22, 0, 2, 4 → 5 reminders.
+        XCTAssertEqual(times.count, 5)
+    }
+
+    func testGoalOverrideWinsOverProfile() {
+        var p = UserProfile()
+        p.weightKg = 70
+        p.sex = .male
+        let calculated = GoalCalculator.dailyGoalML(profile: p)
+
+        let store = HydrationStore(fileURL: FileManager.default.temporaryDirectory
+            .appendingPathComponent("goal-\(UUID().uuidString).json"))
+        store.profile = p
+        XCTAssertEqual(store.baseGoalML, calculated, accuracy: 0.5)
+
+        store.profile.customGoalML = 3000
+        XCTAssertEqual(store.baseGoalML, 3000, accuracy: 0.5)
+        XCTAssertEqual(store.dailyGoalML, 3000, accuracy: 0.5)
+    }
+
+    func testContainerPresetDefaultsDecode() {
+        // Legacy persisted state (no presets key) must still decode to defaults.
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("preset-\(UUID().uuidString).json")
+        let store = HydrationStore(fileURL: url)
+        XCTAssertEqual(store.containerPresets.count, ContainerPreset.defaults.count)
+        XCTAssertEqual(store.quickLogVessels.count, ContainerPreset.defaults.count)
+    }
+
     // MARK: - VolumeUnit
 
     func testOzMlRoundTrip() {

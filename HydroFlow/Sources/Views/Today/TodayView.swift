@@ -1,19 +1,25 @@
 import SwiftUI
 
-/// Main dashboard: liquid-glass orb, hydration rhythm pill, quick stats,
-/// one-tap quick-log shelf, and today's recent sips feed.
+/// Main dashboard (final design): header with streak, hydration rhythm card,
+/// bottle hero, quick stats, one-tap quick-log shelf, and today's sips feed.
+/// Scroll is strictly vertical; every row is width-constrained so nothing can
+/// push the layout sideways.
 struct TodayView: View {
     @EnvironmentObject var store: HydrationStore
     @Binding var showingLogSheet: Bool
 
     @State private var toast: String?
     @State private var toastTask: Task<Void, Never>?
+    @State private var showGoalSheet = false
 
     var body: some View {
-        ScrollView {
+        // `.vertical` only — this is the fix for the whole tab drifting
+        // horizontally when content overflows.
+        ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 14) {
+                headerRow
                 rhythmPill
-                orbCard
+                bottleHeroCard
                 quickStatsRow
                 quickLogCard
                 recentSipsSection
@@ -21,6 +27,7 @@ struct TodayView: View {
             .padding(.horizontal, .margin)
             .padding(.top, 8)
             .padding(.bottom, 110)
+            .frame(maxWidth: .infinity)
         }
         .background(Theme.canvas)
         .overlay(alignment: .top) {
@@ -30,9 +37,107 @@ struct TodayView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
+        .sheet(isPresented: $showGoalSheet) {
+            GoalEditorSheet()
+                .presentationDetents([.medium])
+        }
     }
 
-    // MARK: - Header widgets
+    // MARK: - Header (greeting + streak + quick links)
+
+    private var headerRow: some View {
+        HStack(spacing: 12) {
+            // Leading app tile.
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Theme.azure.opacity(0.12))
+                Image(systemName: "drop.fill")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Theme.azure)
+            }
+            .frame(width: 38, height: 38)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Today, \(Self.dateFormatter.string(from: Date()))")
+                    .font(FlowFont.bodyBold(15))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                HStack(spacing: 4) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.orange)
+                    Text(streakText)
+                        .font(FlowFont.caption(11.5))
+                        .fontWeight(.bold)
+                        .foregroundStyle(.orange)
+                    Text("• Top \(topPercent)")
+                        .font(FlowFont.caption(11.5))
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Theme.labelSecondary)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            // Goal quick-adjust: − / value / + (tap value to open editor).
+            goalStepper
+
+            NavigationLink { AnalyticsView() } label: {
+                Image(systemName: "calendar_month")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Theme.labelPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(Circle().fill(Theme.card))
+                    .overlay(Circle().strokeBorder(Color.black.opacity(0.05), lineWidth: 0.5))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    /// Compact −/goal/+ control letting the user raise or lower the daily
+    /// goal right from the dashboard (step: 1 glass = 250 ml).
+    private var goalStepper: some View {
+        HStack(spacing: 6) {
+            Button {
+                adjustGoal(by: -250)
+            } label: {
+                Image(systemName: "minus")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Theme.labelPrimary)
+                    .frame(width: 26, height: 26)
+                    .background(Circle().fill(Theme.card))
+                    .overlay(Circle().strokeBorder(Color.black.opacity(0.06), lineWidth: 0.5))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                showGoalSheet = true
+            } label: {
+                Text(goalText)
+                    .font(FlowFont.caption(11.5))
+                    .fontWeight(.bold)
+                    .monospacedDigit()
+                    .foregroundStyle(Theme.brandPrimary)
+                    .lineLimit(1)
+                    .padding(.horizontal, 6)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Daily goal \(goalText). Double tap to edit.")
+
+            Button {
+                adjustGoal(by: 250)
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 26, height: 26)
+                    .background(Circle().fill(Theme.azure))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    // MARK: - Rhythm card
 
     private var rhythmPill: some View {
         HStack(spacing: 10) {
@@ -62,7 +167,7 @@ struct TodayView: View {
                     .fontWeight(.medium)
             }
 
-            Spacer()
+            Spacer(minLength: 6)
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 13, weight: .semibold))
@@ -81,7 +186,9 @@ struct TodayView: View {
         )
     }
 
-    private var orbCard: some View {
+    // MARK: - Bottle hero
+
+    private var bottleHeroCard: some View {
         FlowCard {
             VStack(spacing: 14) {
                 BottleFillView(
@@ -91,16 +198,20 @@ struct TodayView: View {
                     unit: store.profile.unit
                 )
 
-                // Encouraging dynamic feedback line.
                 HStack(spacing: 6) {
-                    Text("💧")
+                    Image(systemName: "drop.fill")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Theme.azure)
                     Text(feedbackLine)
                         .font(FlowFont.caption())
                         .fontWeight(.semibold)
                         .foregroundStyle(Theme.labelSecondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
+                .frame(maxWidth: .infinity)
                 .background(Capsule().fill(Theme.azure.opacity(0.07)))
                 .overlay(Capsule().strokeBorder(Theme.azure.opacity(0.14), lineWidth: 0.5))
             }
@@ -108,57 +219,61 @@ struct TodayView: View {
         }
     }
 
+    // MARK: - Quick stats
+
     private var quickStatsRow: some View {
         HStack(spacing: 12) {
-            FlowCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        IconTile(systemName: "clock", tint: Theme.azure, size: 28)
-                        Text("LAST DRINK")
-                            .font(FlowFont.caption(10))
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Theme.labelSecondary)
-                    }
-                    if let last = store.lastEntry {
-                        Text(last.beverage.displayName)
-                            .font(FlowFont.bodyBold())
-                            .lineLimit(1)
-                        Text("\(last.date, formatter: Self.agoFormatter) • \(last.containerName ?? "Quick log")")
-                            .font(FlowFont.caption())
-                            .foregroundStyle(Theme.labelSecondary)
-                    } else {
-                        Text("No drinks yet")
-                            .font(FlowFont.bodyBold())
-                        Text("Log your first sip!")
-                            .font(FlowFont.caption())
-                            .foregroundStyle(Theme.labelSecondary)
-                    }
+            statCard(icon: "clock.fill", tint: Theme.azure, eyebrow: "LAST DRINK") {
+                if let last = store.lastEntry {
+                    Text("\(Int(store.profile.unit.value(fromML: last.volumeML).rounded())) \(store.profile.unit.symbol) \(last.beverage.displayName)")
+                        .font(FlowFont.bodyBold(14))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    Text("\(last.date, formatter: Self.agoFormatter) • \(last.containerName ?? "Quick log")")
+                        .font(FlowFont.caption(10.5))
+                        .foregroundStyle(Theme.labelSecondary)
+                        .lineLimit(1)
+                } else {
+                    Text("No drinks yet")
+                        .font(FlowFont.bodyBold(14))
+                    Text("Log your first sip!")
+                        .font(FlowFont.caption(10.5))
+                        .foregroundStyle(Theme.labelSecondary)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            FlowCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        IconTile(systemName: "target", tint: Theme.aqua, size: 28)
-                        Text("DAILY TARGET")
-                            .font(FlowFont.caption(10))
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Theme.labelSecondary)
-                    }
-                    Text(remainingText)
-                        .font(FlowFont.bodyBold())
-                    Text(glassesText)
-                        .font(FlowFont.caption())
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Theme.aqua)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+            statCard(icon: "chart.pie.fill", tint: Theme.aqua, eyebrow: "DAILY TARGET") {
+                Text(remainingText)
+                    .font(FlowFont.bodyBold(14))
+                    .lineLimit(1)
+                Text(glassesText)
+                    .font(FlowFont.caption(10.5))
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Theme.success)
+                    .lineLimit(1)
             }
         }
     }
 
-    // MARK: - Quick log
+    private func statCard<Content: View>(icon: String, tint: Color, eyebrow: String,
+                                         @ViewBuilder content: () -> Content) -> some View {
+        FlowCard {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    IconTile(systemName: icon, tint: tint, size: 28)
+                    Text(eyebrow)
+                        .font(FlowFont.caption(10))
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Theme.labelSecondary)
+                }
+                content()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Quick log shelf
 
     private var quickLogCard: some View {
         FlowCard {
@@ -177,64 +292,80 @@ struct TodayView: View {
                         .foregroundStyle(Theme.labelSecondary)
                 }
 
-                // Four vessel chips (Glass, Mug, Bottle, Flask).
-                HStack(spacing: 8) {
-                    ForEach(QuickLogVessel.defaults) { vessel in
+                // Vessels from Settings → Container Presets (add/remove/edit there).
+                // Grid keeps every chip on an equal track — no sideways overflow.
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8),
+                                    GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)],
+                          spacing: 8) {
+                    ForEach(store.quickLogVessels) { vessel in
                         QuickVesselButton(vessel: vessel, unit: store.profile.unit) {
                             logQuick(vessel)
                         }
                     }
                 }
 
-                HStack(spacing: 10) {
-                    // Custom amount → opens the full log sheet.
+                // Bottom action row: Custom | Log Sip (horizontal pill) | Repeat.
+                HStack(spacing: 8) {
                     Button {
                         showingLogSheet = true
                     } label: {
-                        Label("Custom", systemImage: "slider.horizontal.3")
-                            .font(FlowFont.bodyBold(12))
-                            .foregroundStyle(Theme.labelSecondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 9)
-                            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.azure.opacity(0.07)))
+                        VStack(spacing: 4) {
+                            Image(systemName: "slider.horizontal.3")
+                                .font(.system(size: 15, weight: .semibold))
+                            Text("Custom")
+                                .font(FlowFont.caption(10.5))
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundStyle(Theme.labelSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.azure.opacity(0.07)))
                     }
+                    .buttonStyle(.plain)
 
-                    Spacer()
-
-                    // Prominent log action.
+                    // The main CTA — fixed horizontal layout.
                     Button {
-                        logQuick(QuickLogVessel.defaults[0])
+                        logDefaultVessel()
                     } label: {
                         HStack(spacing: 7) {
                             Image(systemName: "plus")
-                                .font(.system(size: 13, weight: .bold))
-                                .frame(width: 24, height: 24)
-                                .background(Circle().fill(.white.opacity(0.22)))
+                                .font(.system(size: 12, weight: .bold))
+                                .frame(width: 22, height: 22)
+                                .background(Circle().fill(.white.opacity(0.25)))
                             Text("Log Sip")
                                 .font(FlowFont.bodyBold(14))
+                                .fixedSize(horizontal: true, vertical: false)
                             Image(systemName: "drop.fill")
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.system(size: 12, weight: .semibold))
                         }
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 11)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
                         .background(Capsule().fill(Theme.flowGradient))
                         .shadow(color: Theme.azure.opacity(0.35), radius: 10, y: 4)
+                        .fixedSize()
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Log a sip")
 
-                    Spacer()
-
-                    // Repeat last sip.
                     Button {
                         repeatLast()
                     } label: {
-                        Label(repeatLabel, systemImage: "arrow.counterclockwise")
-                            .font(FlowFont.bodyBold(12))
-                            .foregroundStyle(Theme.labelSecondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 9)
-                            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.azure.opacity(0.07)))
+                        VStack(spacing: 4) {
+                            Image(systemName: "arrow.counterclockwise")
+                                .font(.system(size: 15, weight: .semibold))
+                            Text(repeatLabel)
+                                .font(FlowFont.caption(10.5))
+                                .fontWeight(.semibold)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                        }
+                        .foregroundStyle(Theme.labelSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.azure.opacity(0.07)))
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -244,12 +375,13 @@ struct TodayView: View {
 
     private var recentSipsSection: some View {
         VStack(spacing: 10) {
-            HStack {
+            HStack(spacing: 4) {
                 Text("Recent Sips Today")
                     .font(FlowFont.bodyBold())
                 Text("(\(store.todayEntriesNewestFirst.count) logged)")
                     .font(FlowFont.subhead())
                     .foregroundStyle(Theme.labelSecondary)
+                    .lineLimit(1)
                 Spacer()
                 NavigationLink {
                     HistoryView()
@@ -262,6 +394,7 @@ struct TodayView: View {
                     .fontWeight(.bold)
                     .foregroundStyle(Theme.azure)
                 }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 4)
 
@@ -270,6 +403,7 @@ struct TodayView: View {
                 FlowCard {
                     Text("Nothing logged yet today — tap a vessel above to start! 💧")
                         .font(FlowFont.subhead())
+                        .multilineTextAlignment(.center)
                         .foregroundStyle(Theme.labelSecondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
@@ -294,48 +428,83 @@ struct TodayView: View {
 
     // MARK: - Helpers
 
+    private var unit: VolumeUnit { store.profile.unit }
+
+    private var goalText: String {
+        "\(Int(unit.value(fromML: store.baseGoalML).rounded()))\(unit.symbol)"
+    }
+
+    private var streakText: String {
+        let s = store.currentStreak
+        return "\(s) Day Streak"
+    }
+
+    private var topPercent: String {
+        // Gamified tier from streak length (deterministic, offline).
+        switch store.currentStreak {
+        case 30...: return "1%"
+        case 14..<30: return "5%"
+        case 7..<14: return "10%"
+        case 3..<7: return "25%"
+        default: return "50%"
+        }
+    }
+
     private var nextSipMinutes: Int {
-        let intervalMinutes = store.reminderSettings.interval.rawValue * 60
-        let elapsed = Date().timeIntervalSince(store.lastEntry?.date ?? Date())
-        let remaining = max(0, intervalMinutes - elapsed / 60)
+        let intervalMinutes = store.reminderSettings.effectiveIntervalMinutes
+        let elapsed = Date().timeIntervalSince(store.lastEntry?.date ?? Date()) / 60
+        let remaining = max(0, intervalMinutes - elapsed)
         return Int(remaining.rounded())
     }
 
     private var feedbackLine: String {
-        let unit = store.profile.unit
         let remaining = max(0, store.dailyGoalML - store.todayTotalML)
         if remaining <= 0 { return "Goal complete — beautifully done! 🎉" }
-        let value = unit.value(fromML: remaining)
-        return "\(Int(value.rounded())) \(unit.symbol) remaining to stay fully energized"
+        return "\(Int(unit.value(fromML: remaining).rounded())) \(unit.symbol) remaining to stay fully energized"
     }
 
     private var remainingText: String {
-        let unit = store.profile.unit
         let remaining = max(0, store.dailyGoalML - store.todayTotalML)
         return "\(Int(unit.value(fromML: remaining).rounded())) \(unit.symbol) left"
     }
 
     private var glassesText: String {
         let remaining = max(0, store.dailyGoalML - store.todayTotalML)
-        let glasses = remaining / 240
-        return String(format: "approx. %.1f glasses", glasses)
+        return String(format: "approx. %.1f glasses", remaining / 240)
     }
 
     private var repeatLabel: String {
         guard let last = store.lastEntry else { return "Repeat" }
-        let unit = store.profile.unit
         return "+\(Int(unit.value(fromML: last.volumeML).rounded())) \(unit.symbol)"
+    }
+
+    /// Raise/lower the goal by `deltaML`, clamped to a sane 1000–5000 ml band.
+    private func adjustGoal(by deltaML: Double) {
+        let newGoal = min(max(store.baseGoalML + Double(deltaML), 1000), 5000)
+        guard abs(newGoal - store.baseGoalML) > 0.5 else { return }
+        Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
+        store.profile.customGoalML = newGoal
+        let value = Int(unit.value(fromML: newGoal).rounded())
+        showToast("Daily goal set to \(value) \(unit.symbol)")
     }
 
     private func logQuick(_ vessel: QuickLogVessel) {
         let entry = store.logDrink(vessel.beverage, volumeML: vessel.volumeML, containerName: vessel.name)
         Feedback.sipLogged(enabled: store.reminderSettings.hapticsEnabled)
         HealthKitManager.shared.syncEntry(entry)
-        showToast("+\(Int(store.profile.unit.value(fromML: vessel.volumeML).rounded())) \(store.profile.unit.symbol) logged")
+        showToast("+\(Int(unit.value(fromML: vessel.volumeML).rounded())) \(unit.symbol) logged")
+    }
+
+    private func logDefaultVessel() {
+        let vessel = store.quickLogVessels.first ?? QuickLogVessel.defaults[0]
+        logQuick(vessel)
     }
 
     private func repeatLast() {
-        guard let last = store.lastEntry else { return }
+        guard let last = store.lastEntry else {
+            showToast("Nothing to repeat yet")
+            return
+        }
         let entry = store.logDrink(last.beverage, volumeML: last.volumeML, containerName: last.containerName)
         Feedback.sipLogged(enabled: store.reminderSettings.hapticsEnabled)
         HealthKitManager.shared.syncEntry(entry)
@@ -358,6 +527,12 @@ struct TodayView: View {
         }
     }
 
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d"
+        return f
+    }()
+
     private static let agoFormatter: RelativeDateTimeFormatter = {
         let f = RelativeDateTimeFormatter()
         f.unitsStyle = .abbreviated
@@ -367,7 +542,7 @@ struct TodayView: View {
 
 // MARK: - Quick log vessels
 
-/// One of the four one-tap vessel chips on the dashboard.
+/// One of the one-tap vessel chips on the dashboard (mirrors a ContainerPreset).
 struct QuickLogVessel: Identifiable {
     let id: String
     let name: String
@@ -376,10 +551,10 @@ struct QuickLogVessel: Identifiable {
     let symbol: String
 
     static let defaults: [QuickLogVessel] = [
-        .init(id: "glass", name: "Glass", beverage: .water, volumeML: 240, symbol: "cup.and.saucer.fill"),
+        .init(id: "glass", name: "Glass", beverage: .water, volumeML: 240, symbol: "water.glass.fill"),
         .init(id: "mug", name: "Mug", beverage: .tea, volumeML: 355, symbol: "mug.fill"),
-        .init(id: "bottle", name: "Bottle", beverage: .water, volumeML: 473, symbol: "bottle.fill"),
-        .init(id: "flask", name: "Flask", beverage: .electrolytes, volumeML: 710, symbol: "takeoutbag.and.cup.and.straw.fill")
+        .init(id: "bottle", name: "Bottle", beverage: .water, volumeML: 473, symbol: "waterbottle.fill"),
+        .init(id: "flask", name: "Flask", beverage: .electrolytes, volumeML: 710, symbol: "testtube.fill")
     ]
 }
 
@@ -405,12 +580,17 @@ struct QuickVesselButton: View {
                 Text("+\(Int(unit.value(fromML: vessel.volumeML).rounded())) \(unit.symbol)")
                     .font(FlowFont.bodyBold(12))
                     .foregroundStyle(Theme.labelPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                 Text(vessel.name)
                     .font(FlowFont.caption(10))
                     .foregroundStyle(Theme.labelSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
+            .padding(.horizontal, 4)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .fill(Theme.azure.opacity(0.05))
@@ -441,6 +621,7 @@ struct EntryRow: View {
                     Text(title)
                         .font(FlowFont.bodyBold())
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     Text("\(Int(entry.hydrationFactor * 100))%")
                         .font(FlowFont.caption(10))
                         .fontWeight(.bold)
@@ -452,14 +633,16 @@ struct EntryRow: View {
                 Text("\(entry.date, formatter: Self.timeFormatter) • \(entry.containerName ?? entry.beverage.displayName)")
                     .font(FlowFont.caption())
                     .foregroundStyle(Theme.labelSecondary)
+                    .lineLimit(1)
             }
 
-            Spacer()
+            Spacer(minLength: 6)
 
             Text("+\(Int(unit.value(fromML: entry.volumeML).rounded())) \(unit.symbol)")
                 .font(FlowFont.subhead())
                 .fontWeight(.bold)
                 .foregroundStyle(Theme.azure)
+                .fixedSize()
 
             if let onDelete {
                 Menu {

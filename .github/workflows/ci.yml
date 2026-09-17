@@ -30,8 +30,9 @@ jobs:
 
   ipa:
     # Builds an unsigned IPA for sideloading (see README: Sideloadly section).
-    # Signing happens locally on your PC with your own Apple ID — we never
-    # commit certificates to the repo.
+    # Uses `build` (not `archive`) — archive enforces signing validation,
+    # build with signing disabled does not. Packaging mimics xcodebuild's
+    # archive layout (Payload/HydroFlow.app).
     name: Build unsigned IPA
     runs-on: macos-14
     steps:
@@ -43,26 +44,33 @@ jobs:
       - name: Generate Xcode project
         run: cd HydroFlow/Project && xcodegen generate
 
-      - name: Archive (unsigned)
+      - name: Build app for device (unsigned)
         run: |
           cd HydroFlow/Project
-          xcodebuild archive \
-            -scheme HydroFlow \
+          set -o pipefail
+          xcodebuild build \
             -project HydroFlow.xcodeproj \
+            -scheme HydroFlow \
             -configuration Release \
             -destination 'generic/platform=iOS' \
-            -archivePath build/HydroFlow.xcarchive \
+            -derivedDataPath build/dd \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            2>&1 | tee build/xcodebuild.log
 
-      - name: Create unsigned IPA
+      - name: Package unsigned IPA
         run: |
-          cd build/HydroFlow.xcarchive/Products/Applications
-          mkdir Payload
-          cp -R HydroFlow.app Payload/
-          zip -qry ../../../HydroFlow-unsigned.ipa Payload
-          mv ../../../HydroFlow-unsigned.ipa "$GITHUB_WORKSPACE/HydroFlow-unsigned.ipa"
+          APP="HydroFlow/Project/build/dd/Build/Products/Release-iphoneos/HydroFlow.app"
+          test -d "$APP" || { echo "App bundle not found"; ls HydroFlow/Project/build/dd/Build/Products/ ; exit 1; }
+          rm -rf staging && mkdir -p staging/Payload
+          cp -R "$APP" staging/Payload/
+          cd staging
+          zip -qry ../HydroFlow-unsigned.ipa Payload
+          cd ..
+          mv HydroFlow-unsigned.ipa "$GITHUB_WORKSPACE/HydroFlow-unsigned.ipa"
+          unzip -l "$GITHUB_WORKSPACE/HydroFlow-unsigned.ipa" | head -8
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
@@ -70,3 +78,11 @@ jobs:
           name: HydroFlow-unsigned-ipa
           path: HydroFlow-unsigned.ipa
           retention-days: 30
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: HydroFlow/Project/build/xcodebuild.log
+          retention-days: 7

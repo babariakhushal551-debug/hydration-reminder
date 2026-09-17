@@ -195,7 +195,7 @@ final class HydrationStore: ObservableObject {
 
         // Keep the Home Screen widget's snapshot in sync with every mutation
         // (best-effort; no-ops when WidgetKit is unavailable in tests).
-        WidgetPublisher.publishSnapshot(
+        WidgetPublisher.publish(
             currentML: todayTotalML,
             goalML: dailyGoalML,
             unitSymbol: profile.unit.symbol,

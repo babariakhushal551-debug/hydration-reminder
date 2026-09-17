@@ -49,7 +49,12 @@ struct HydroFlowApp: App {
                     notificationScheduler.reschedule(settings: store.reminderSettings, soundManager: soundManager)
                     // Publish the latest snapshot so the Home Screen widget
                     // shows fresh data immediately after launch.
-                    WidgetPublisher.publish(store: store)
+                    WidgetPublisher.publish(
+                        currentML: store.todayTotalML,
+                        goalML: store.dailyGoalML,
+                        unitSymbol: store.profile.unit.symbol,
+                        streak: store.currentStreak
+                    )
                 }
         }
     }

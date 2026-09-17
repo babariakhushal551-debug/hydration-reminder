@@ -24,7 +24,13 @@ enum WidgetConstants {
 
 /// The compact data blob the Home Screen widget renders. Written by the app
 /// on every log/goal change, read by the widget extension's timeline provider.
+///
+/// Deliberately self-contained: this file compiles into BOTH the app and the
+/// widget extension, so it must not reference app-only types.
 struct WidgetSnapshot: Codable, Equatable {
+    /// Milliliters per fluid ounce (mirrors VolumeUnit.mlPerOz).
+    private static let mlPerOz: Double = 29.5735
+
     /// Hydration credit logged today, in milliliters.
     var currentML: Double
     /// Today's goal in milliliters (already includes weather bonus).
@@ -33,7 +39,7 @@ struct WidgetSnapshot: Codable, Equatable {
     var unitSymbol: String
     /// Current streak in days.
     var streak: Int
-    /// Percentage of the day elapsed (for the "day pace" hint).
+    /// Last update timestamp.
     var updated: Date
 
     /// 0...1 fill fraction for the bottle.
@@ -46,14 +52,14 @@ struct WidgetSnapshot: Codable, Equatable {
     func displayText(_ symbol: String? = nil) -> String {
         let sym = symbol ?? unitSymbol
         if sym == "oz" {
-            return "\(Int((currentML / VolumeUnit.mlPerOz).rounded())) oz"
+            return "\(Int((currentML / Self.mlPerOz).rounded())) oz"
         }
         return "\(Int(currentML.rounded())) ml"
     }
 
     func goalText() -> String {
         if unitSymbol == "oz" {
-            return "\(Int((goalML / VolumeUnit.mlPerOz).rounded())) oz"
+            return "\(Int((goalML / Self.mlPerOz).rounded())) oz"
         }
         return "\(Int(goalML.rounded())) ml"
     }
@@ -62,19 +68,8 @@ struct WidgetSnapshot: Codable, Equatable {
 /// App-side publisher: encodes the snapshot into the App Group container and
 /// asks WidgetKit to refresh the widget timelines.
 enum WidgetPublisher {
-    /// Write the latest state and reload widget timelines.
-    /// Called after every log/delete/goal change.
-    static func publish(store: HydrationStore) {
-        publishSnapshot(
-            currentML: store.todayTotalML,
-            goalML: store.dailyGoalML,
-            unitSymbol: store.profile.unit.symbol,
-            streak: store.currentStreak
-        )
-    }
-
     /// Value-level entry point (used by the store's save path).
-    static func publishSnapshot(currentML: Double, goalML: Double, unitSymbol: String, streak: Int) {
+    static func publish(currentML: Double, goalML: Double, unitSymbol: String, streak: Int) {
         let snapshot = WidgetSnapshot(
             currentML: currentML,
             goalML: goalML,

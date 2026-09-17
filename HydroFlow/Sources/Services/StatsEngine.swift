@@ -16,7 +16,8 @@ enum StatsEngine {
 
     /// Total hydration credit for a day, in milliliters.
     static func totalML(on date: Date, from entries: [WaterEntry], calendar: Calendar = .current) -> Double {
-        entries(on: date, from: entries, calendar: calendar).reduce(0) { $0 + $1.hydrationML }
+        // Self-qualify: the `entries` parameter shadows the function name here.
+        Self.entries(on: date, from: entries, calendar: calendar).reduce(0) { $0 + $1.hydrationML }
     }
 
     /// Whether a day met its goal (≥ 100%).

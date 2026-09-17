@@ -24,7 +24,9 @@ enum WeatherProviding {
 
         // Day-of-year fraction (0...1) within the year.
         let dayOfYear = Double(calendar.ordinality(of: .day, in: .year, for: now) ?? 1)
-        let daysInYear: Double = calendar.isDateInLeapYear(now) ? 366 : 365
+        let year = calendar.component(.year, from: now)
+        let isLeap = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
+        let daysInYear: Double = isLeap ? 366 : 365
         let phase = (dayOfYear - 1) / daysInYear * 2 * .pi
 
         // Peak heat ~July 21 (day 202), coldest ~January 21.

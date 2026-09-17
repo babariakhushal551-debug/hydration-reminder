@@ -59,6 +59,8 @@ final class NotificationScheduler: ObservableObject {
 
     /// Rebuild the full reminder schedule from settings.
     /// Call after any settings change, app launch, or permission grant.
+    /// MainActor: resolves the sound through SoundManager (actor-isolated).
+    @MainActor
     func reschedule(settings: ReminderSettings, soundManager: SoundManager? = nil) {
         center.removeAllPendingNotificationRequests()
 

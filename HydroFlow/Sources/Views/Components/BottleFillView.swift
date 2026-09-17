@@ -90,7 +90,7 @@ struct BottleFillView: View {
 
             // Right thin counter-highlight.
             RealisticBottleShape()
-                .strokeBorder(Color.white.opacity(0.35), lineWidth: 1)
+                .stroke(Color.white.opacity(0.35), lineWidth: 1)
                 .blur(radius: 0.6)
                 .allowsHitTesting(false)
 

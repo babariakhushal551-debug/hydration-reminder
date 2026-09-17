@@ -145,6 +145,13 @@ final class HydrationStore: ObservableObject {
 
     // MARK: - Saving
 
+    /// Cancels any pending debounced save and writes state synchronously.
+    /// Used by tests and app background/lifecycle handlers.
+    func flushSaves() {
+        saveWorkItem?.cancel()
+        performSave()
+    }
+
     /// Debounced background save; coalesces rapid mutations (e.g. stepper spins).
     private func scheduleSave() {
         saveWorkItem?.cancel()

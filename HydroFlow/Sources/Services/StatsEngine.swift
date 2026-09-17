@@ -61,15 +61,14 @@ enum StatsEngine {
     }
 
     /// Monday-first array of 7 day-starts for the week containing `reference`.
+    /// Deliberately independent of the calendar's locale-specific firstWeekday
+    /// (US locales start weeks on Sunday; we always render Monday-first).
     static func weekDays(reference: Date, calendar: Calendar = .current) -> [Date] {
-        guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: reference) else { return [] }
-        var days: [Date] = []
-        for offset in 0..<7 {
-            if let d = calendar.date(byAdding: .day, value: offset, to: weekInterval.start) {
-                days.append(d)
-            }
-        }
-        return days
+        guard let dayStart = calendar.dateInterval(of: .day, for: reference)?.start else { return [] }
+        let weekday = calendar.component(.weekday, from: dayStart)   // 1 = Sunday … 7 = Saturday
+        let isoWeekday = weekday == 1 ? 7 : weekday - 1              // Monday = 1 … Sunday = 7
+        guard let monday = calendar.date(byAdding: .day, value: -(isoWeekday - 1), to: dayStart) else { return [] }
+        return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: monday) }
     }
 
     /// How many days in the week met the goal.

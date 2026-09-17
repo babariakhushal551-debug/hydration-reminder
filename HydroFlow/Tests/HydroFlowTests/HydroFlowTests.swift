@@ -226,10 +226,8 @@ final class HydroFlowTests: XCTestCase {
                                                       activity: .high, climate: .dry, unit: .milliliters))
         store.logDrink(.water, volumeML: 250)
 
-        // Wait past the debounced save window.
-        let exp = expectation(description: "save")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { exp.fulfill() }
-        wait(for: [exp], timeout: 2)
+        // Force the debounced save to complete before reloading.
+        store.flushSaves()
 
         let reloaded = HydrationStore(fileURL: url)
         XCTAssertEqual(reloaded.profile.name, "Test")

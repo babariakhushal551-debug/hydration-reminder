@@ -47,6 +47,9 @@ struct HydroFlowApp: App {
                     store.refreshWeatherBonus()
                     await notificationScheduler.refreshAuthorizationStatus()
                     notificationScheduler.reschedule(settings: store.reminderSettings, soundManager: soundManager)
+                    // Publish the latest snapshot so the Home Screen widget
+                    // shows fresh data immediately after launch.
+                    WidgetPublisher.publish(store: store)
                 }
         }
     }

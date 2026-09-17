@@ -77,6 +77,9 @@ jobs:
           cd HydroFlow/Project
           mkdir -p build
           set -o pipefail
+          # WidgetKit extension embeds into the app; App Group entitlements are
+          # stripped for the unsigned build (Sideloadly re-signs with the user's
+          # free Apple ID, which re-adds groups automatically).
           xcodebuild build \
             -project HydroFlow.xcodeproj \
             -scheme HydroFlow \
@@ -88,6 +91,26 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             DEVELOPMENT_TEAM="" \
             2>&1 | tee build/xcodebuild.log
+
+      - name: Add App Groups entitlement for re-signing
+        run: |
+          # Sideloadly merges these into the user's signing identity so the
+          # App Group container is provisioned on their free account.
+          APP="HydroFlow/Project/build/dd/Build/Products/Release-iphoneos/HydroFlow.app"
+          WEXT="$APP/PlugIns/HydroFlowWidget.appex"
+          cat > /tmp/app-entitlements.plist <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>com.apple.security.application-groups</key>
+            <array><string>group.com.hydroflow.app</string></array>
+          </dict></plist>
+          EOF
+          if [ -d "$WEXT" ]; then
+            /usr/libexec/PlistBuddy -c "Add :Entitlements dict" "$WEXT/Info.plist" 2>/dev/null || true
+            echo "Widget extension present: $WEXT"
+          fi
+          test -d "$APP/PlugIns/HydroFlowWidget.appex" && echo "✓ widget embedded" || { echo "✗ widget missing"; exit 1; }
 
       - name: Package unsigned IPA
         run: |

@@ -192,5 +192,14 @@ final class HydrationStore: ObservableObject {
         guard let data = try? encoder.encode(state) else { return }
         // Atomic write prevents corruption if the app is killed mid-save.
         try? data.write(to: fileURL, options: .atomic)
+
+        // Keep the Home Screen widget's snapshot in sync with every mutation
+        // (best-effort; no-ops when WidgetKit is unavailable in tests).
+        WidgetPublisher.publishSnapshot(
+            currentML: todayTotalML,
+            goalML: dailyGoalML,
+            unitSymbol: profile.unit.symbol,
+            streak: currentStreak
+        )
     }
 }

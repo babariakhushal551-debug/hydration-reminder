@@ -36,6 +36,26 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_PREVIEWS: YES
+        CODE_SIGN_ENTITLEMENTS: ../Sources/App/HydroFlow.entitlements
+    dependencies:
+      - target: HydroFlowWidget
+        embed: true
+
+  HydroFlowWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ../Widget/HydroFlowWidget.swift
+      - path: ../Sources/Services/WidgetShared.swift
+    info:
+      path: ../Widget/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hydroflow.app.widget
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+        CODE_SIGN_ENTITLEMENTS: ../Widget/HydroFlowWidget.entitlements
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: ""
 
   HydroFlowTests:
     type: bundle.unit-test

@@ -12,6 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Select Xcode 16
+        run: |
+          ls /Applications | grep -i xcode || true
+          for X in Xcode_16.2 Xcode_16.1 Xcode_16.0 Xcode_16; do
+            if [ -d "/Applications/$X.app" ]; then
+              sudo xcode-select -s "/Applications/$X.app/Contents/Developer"
+              break
+            fi
+          done
+          xcodebuild -version
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
@@ -21,22 +32,31 @@ jobs:
       - name: Build & test
         run: |
           cd HydroFlow/Project
+          set -o pipefail
           xcodebuild test \
+            -project HydroFlow.xcodeproj \
             -scheme HydroFlow \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -destination 'platform=iOS Simulator,OS=latest' \
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || exit 1
+            2>&1 | xcpretty && exit ${PIPESTATUS[0]} ; echo "xcodebuild exited non-zero" && exit 1
 
   ipa:
     # Builds an unsigned IPA for sideloading (see README: Sideloadly section).
-    # Uses `build` (not `archive`) — archive enforces signing validation,
-    # build with signing disabled does not. Packaging mimics xcodebuild's
-    # archive layout (Payload/HydroFlow.app).
     name: Build unsigned IPA
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: |
+          for X in Xcode_16.2 Xcode_16.1 Xcode_16.0 Xcode_16; do
+            if [ -d "/Applications/$X.app" ]; then
+              sudo xcode-select -s "/Applications/$X.app/Contents/Developer"
+              break
+            fi
+          done
+          xcodebuild -version
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -47,6 +67,7 @@ jobs:
       - name: Build app for device (unsigned)
         run: |
           cd HydroFlow/Project
+          mkdir -p build
           set -o pipefail
           xcodebuild build \
             -project HydroFlow.xcodeproj \

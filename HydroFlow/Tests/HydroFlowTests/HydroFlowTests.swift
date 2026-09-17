@@ -210,7 +210,7 @@ final class HydroFlowTests: XCTestCase {
     }
 
     func testEntryHydrationCredit() {
-        let entry = WaterEntry(date: Date(), beverage: .coffee, volumeML: 200, hydrationFactor: .coffee.hydrationFactor, containerName: nil)
+        let entry = WaterEntry(date: Date(), beverage: .coffee, volumeML: 200, hydrationFactor: BeverageType.coffee.hydrationFactor, containerName: nil)
         XCTAssertEqual(entry.hydrationML, 160, accuracy: 0.01)
     }
 

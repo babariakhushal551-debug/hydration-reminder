@@ -122,13 +122,22 @@ function renderSheet() {
         <span class="eyebrow" style="color:var(--label2)">TARGET INTAKE</span>
         <span class="cap" style="color:var(--brand);font-weight:700">💧 Real-time Fluid</span>
       </div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:18px;padding:8px 0">
-        <button class="stepper-btn" onclick="nudge(-1)">−</button>
-        <div style="text-align:center;min-width:120px">
-          <div style="font-size:40px;font-weight:800;line-height:1">${fmt(sheetML)}<span style="font-size:17px;color:var(--label2)"> ${unitSym()}</span></div>
-          <div class="cap-b" style="color:var(--brand);margin-top:3px">${Math.round(sheetML)} ml</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:20px;padding:8px 0">
+        <div class="pour-bottle" id="pour-bottle">
+          <div class="water" id="pour-water" style="height:${(26 + Math.min(sheetML / 1000, 1) * 72).toFixed(1)}%"></div>
+          <div class="pour-center">
+            <div class="num">${fmt(sheetML)}<small> ${unitSym()}</small><div class="cap-b" style="color:var(--brand)">${Math.round(sheetML)} ml</div></div>
+            <div class="hint">DRAG TO POUR</div>
+          </div>
         </div>
-        <button class="stepper-btn" onclick="nudge(1)">+</button>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <button class="stepper-btn" onclick="nudge(1)">+</button>
+          <div style="text-align:center;min-width:64px">
+            <div style="font-size:30px;font-weight:800;line-height:1">${fmt(sheetML)}<span style="font-size:14px;color:var(--label2)"> ${unitSym()}</span></div>
+            <div class="cap-b" style="color:var(--brand);margin-top:2px">${Math.round(sheetML)} ml</div>
+          </div>
+          <button class="stepper-btn" onclick="nudge(-1)">−</button>
+        </div>
       </div>
       <div style="display:flex;gap:8px;overflow-x:auto;padding:6px 0;scrollbar-width:none">
         ${presets.map(p => `<button class="chip ${Math.abs(sheetML - p) < 1 ? 'on' : ''}" onclick="setPreset(${p})">${fmt(p)} ${unitSym()}</button>`).join('')}
@@ -169,6 +178,45 @@ function pickBev(id) {
   sheetML = bevCatalog.find(b => b.id === id).preset;
   renderSheet();
 }
+
+// ---------- Pour-bottle drag interaction ----------
+// Maps vertical drags on the log-sheet bottle to the selected volume.
+// Water body spans 26%..98% of the bottle height (below the shoulder).
+function setupPourDrag() {
+  const bottle = document.getElementById('pour-bottle');
+  if (!bottle) return;
+  const TOP_FRAC = 0.26, BOTTOM_FRAC = 0.98, MAX_ML = 1000;
+  let dragging = false;
+
+  const setFromY = (clientY) => {
+    const rect = bottle.getBoundingClientRect();
+    const raw = 1 - (clientY - rect.top) / rect.height;         // top = full
+    const bodyFrac = Math.min(Math.max((raw - TOP_FRAC) / (BOTTOM_FRAC - TOP_FRAC), 0), 1);
+    const step = state.unit === 'oz' ? ML_PER_OZ : 50;
+    const snapped = Math.round((bodyFrac * MAX_ML) / step) * step;
+    const clamped = Math.min(Math.max(snapped, 30), 2000);
+    if (Math.abs(clamped - sheetML) >= 1) {
+      sheetML = clamped; lastBeverage = sheetSel;
+      haptic();
+      // Update just the moving parts for 60fps-feel; full re-render on release.
+      document.getElementById('pour-water').style.height = (26 + Math.min(sheetML / MAX_ML, 1) * 72) + '%';
+      const num = bottle.querySelector('.num');
+      num.innerHTML = `${fmt(sheetML)}<small> ${unitSym()}</small><div class="cap-b" style="color:var(--brand)">${Math.round(sheetML)} ml</div>`;
+    }
+  };
+
+  bottle.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    bottle.setPointerCapture(e.pointerId);
+    setFromY(e.clientY);
+  });
+  bottle.addEventListener('pointermove', (e) => { if (dragging) setFromY(e.clientY); });
+  bottle.addEventListener('pointerup', () => { if (dragging) { dragging = false; renderSheet(); } });
+  bottle.addEventListener('pointercancel', () => { dragging = false; });
+}
+// Re-bind after every sheet render (element is recreated).
+const _origRenderSheet = renderSheet;
+renderSheet = function () { _origRenderSheet(); setupPourDrag(); };
 function sheetLog() {
   logDrink(sheetSel, sheetML, 'Custom log');
   setTimeout(closeSheet, 550);
@@ -193,20 +241,24 @@ function renderToday() {
     </div>
 
     <div class="card">
-      <div class="orb-wrap">
-        <div style="position:relative;width:244px;height:244px;display:flex;align-items:center;justify-content:center">
-          <div class="ring" style="background:conic-gradient(var(--azure) 0 ${Math.min(pct,100) * 3.6}deg, rgba(0,122,255,.12) ${Math.min(pct,100) * 3.6}deg 360deg);mask:radial-gradient(circle, transparent 108px, #000 109px);-webkit-mask:radial-gradient(circle, transparent 108px, #000 109px);border-radius:50%"></div>
-          <div class="orb">
-            <div class="liquid" style="height:${Math.min(prog, 1) * 100}%"></div>
-            <div class="bub"></div><div class="bub"></div><div class="bub"></div>
-            <div class="orb-center">
-              <div class="orb-num">${fmt(tot)}<small> ${unitSym()}</small></div>
-              <div class="orb-goal">Goal: ${fmt(state.goalML)} ${unitSym()} <b>${pct}%</b></div>
-            </div>
-          </div>
+      <div class="bottle-row">
+        <div class="bottle">
+          <div class="water" style="height:${(26 + Math.min(prog, 1) * 72).toFixed(1)}%"></div>
+          ${[25, 50, 75].map(f => `<div class="bottle-tick" style="top:${(26 + f / 100 * 72).toFixed(1)}%"><i></i>${f}%</div>`).join('')}
         </div>
-        <div class="cap-b" style="margin-top:10px;background:rgba(0,122,255,.07);border-radius:99px;padding:6px 14px">
-          ${remaining <= 0 ? '🎉 Goal complete — beautifully done!' : `💧 ${fmt(remaining)} ${unitSym()} remaining to stay fully energized`}
+        <div class="bottle-info">
+          <div>
+            <div class="big">${fmt(tot)}<small> ${unitSym()}</small></div>
+            <div class="cap" style="margin-top:3px">of ${fmt(state.goalML)} ${unitSym()} goal</div>
+          </div>
+          <div class="pbar"><i style="width:${Math.min(pct, 100)}%"></i></div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <b style="background:var(--azure);color:#fff;font-size:11px;border-radius:99px;padding:2px 8px">${pct}%</b>
+            <span style="font-size:14px">${prog >= 1 ? '✅' : '💧'}</span>
+          </div>
+          <div class="cap-b" style="background:rgba(0,122,255,.07);border-radius:12px;padding:6px 10px">
+            ${remaining <= 0 ? '🎉 Goal complete!' : `💧 ${fmt(remaining)} ${unitSym()} to go`}
+          </div>
         </div>
       </div>
     </div>

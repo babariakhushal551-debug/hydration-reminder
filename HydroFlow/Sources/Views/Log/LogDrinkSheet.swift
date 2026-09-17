@@ -71,42 +71,43 @@ struct LogDrinkSheet: View {
                     .foregroundStyle(Theme.brandPrimary)
                 }
 
-                ZStack {
-                    // Animated liquid gauge mirroring the stepper value.
-                    MiniLiquidGauge(progress: gaugeProgress, tint: color(for: selectedBeverage.tint))
+                HStack(spacing: 14) {
+                    // Interactive bottle: slide the water level to set the amount.
+                    PourBottlePicker(
+                        volumeML: $volumeML,
+                        maxML: 1000,
+                        tint: color(for: selectedBeverage.tint),
+                        unit: unit,
+                        hapticsEnabled: store.reminderSettings.hapticsEnabled
+                    )
 
-                    VStack(spacing: 3) {
-                        HStack(alignment: .firstTextBaseline, spacing: 3) {
-                            Text("\(Int(volumeDisplayValue.rounded()))")
-                                .font(.system(size: 38, weight: .bold, design: .rounded))
-                                .monospacedDigit()
-                                .contentTransition(.numericText())
-                            Text(unit.symbol)
-                                .font(FlowFont.headlineSmall())
-                                .foregroundStyle(Theme.labelSecondary)
-                        }
-                        Text(mlCaption)
-                            .font(FlowFont.caption())
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Theme.brandPrimary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 2)
-                            .background(Capsule().fill(Theme.azure.opacity(0.07)))
-                            .overlay(Capsule().strokeBorder(Theme.azure.opacity(0.14), lineWidth: 0.5))
-                    }
-
-                    // Steppers.
-                    HStack {
-                        stepperButton(systemName: "minus") {
-                            changeVolume(by: -unitStep)
-                        }
-                        Spacer()
+                    // Fine-tune steppers stacked beside the bottle.
+                    VStack(spacing: 14) {
                         stepperButton(systemName: "plus") {
                             changeVolume(by: unitStep)
                         }
+                        VStack(spacing: 2) {
+                            Text("\(Int(volumeDisplayValue.rounded()))")
+                                .font(.system(size: 30, weight: .bold, design: .rounded))
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
+                            Text(unit.symbol)
+                                .font(FlowFont.bodyBold())
+                                .foregroundStyle(Theme.labelSecondary)
+                            Text(mlCaption)
+                                .font(FlowFont.caption())
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Theme.brandPrimary)
+                        }
+                        .frame(minWidth: 64)
+                        stepperButton(systemName: "minus") {
+                            changeVolume(by: -unitStep)
+                        }
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(height: 190)
+                .frame(height: 240)
+                .frame(maxWidth: .infinity)
 
                 // Preset chips row (4/8/12/16/24/32 oz).
                 ScrollView(.horizontal, showsIndicators: false) {

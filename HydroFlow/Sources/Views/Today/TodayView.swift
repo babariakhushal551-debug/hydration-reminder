@@ -84,7 +84,7 @@ struct TodayView: View {
     private var orbCard: some View {
         FlowCard {
             VStack(spacing: 14) {
-                HydrationOrbView(
+                BottleFillView(
                     progress: store.todayProgress,
                     currentML: store.todayTotalML,
                     goalML: store.dailyGoalML,

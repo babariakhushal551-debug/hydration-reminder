@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: cd HydroFlow/Project && xcodegen generate
+
+      - name: Build & test
+        run: |
+          cd HydroFlow/Project
+          xcodebuild test \
+            -scheme HydroFlow \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || exit 1
+
+  ipa:
+    # Builds an unsigned IPA for sideloading (see README: Sideloadly section).
+    # Signing happens locally on your PC with your own Apple ID — we never
+    # commit certificates to the repo.
+    name: Build unsigned IPA
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: cd HydroFlow/Project && xcodegen generate
+
+      - name: Archive (unsigned)
+        run: |
+          cd HydroFlow/Project
+          xcodebuild archive \
+            -scheme HydroFlow \
+            -project HydroFlow.xcodeproj \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/HydroFlow.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Create unsigned IPA
+        run: |
+          cd build/HydroFlow.xcarchive/Products/Applications
+          mkdir Payload
+          cp -R HydroFlow.app Payload/
+          zip -qry ../../../HydroFlow-unsigned.ipa Payload
+          mv ../../../HydroFlow-unsigned.ipa "$GITHUB_WORKSPACE/HydroFlow-unsigned.ipa"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HydroFlow-unsigned-ipa
+          path: HydroFlow-unsigned.ipa
+          retention-days: 30

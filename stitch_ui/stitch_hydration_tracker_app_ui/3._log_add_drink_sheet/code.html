@@ -1,0 +1,375 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>HydroFlow - Log Hydration</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-surface": "#2f3034",
+            "on-tertiary": "#ffffff",
+            "inverse-on-surface": "#f1f0f5",
+            "background": "#faf9fe",
+            "tertiary-fixed": "#e2dfff",
+            "surface-dim": "#dad9df",
+            "tertiary-container": "#6664e4",
+            "secondary-fixed-dim": "#39dcd2",
+            "secondary": "#006a65",
+            "secondary-fixed": "#61f9ef",
+            "primary-container": "#0070eb",
+            "on-surface": "#1a1b1f",
+            "inverse-primary": "#adc6ff",
+            "surface-container": "#eeedf3",
+            "on-primary-container": "#fefcff",
+            "on-secondary-fixed-variant": "#00504c",
+            "on-error-container": "#93000a",
+            "surface-variant": "#e3e2e7",
+            "on-primary-fixed": "#001a41",
+            "on-primary": "#ffffff",
+            "outline-variant": "#c1c6d7",
+            "surface": "#faf9fe",
+            "primary": "#0058bc",
+            "on-secondary-fixed": "#00201e",
+            "surface-container-low": "#f4f3f8",
+            "on-tertiary-container": "#fffbff",
+            "surface-container-lowest": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed-dim": "#adc6ff",
+            "on-tertiary-fixed-variant": "#3631b4",
+            "error": "#ba1a1a",
+            "secondary-container": "#5df6ec",
+            "error-container": "#ffdad6",
+            "on-tertiary-fixed": "#0c006a",
+            "tertiary-fixed-dim": "#c2c1ff",
+            "on-secondary-container": "#006f69",
+            "on-surface-variant": "#414755",
+            "primary-fixed": "#d8e2ff",
+            "on-background": "#1a1b1f",
+            "on-secondary": "#ffffff",
+            "on-primary-fixed-variant": "#004493",
+            "surface-tint": "#005bc1",
+            "outline": "#717786",
+            "surface-container-highest": "#e3e2e7",
+            "tertiary": "#4c4aca",
+            "surface-container-high": "#e9e7ed",
+            "surface-bright": "#faf9fe"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.25rem",
+            "space-xl": "2rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "display-hero": ["Manrope"],
+            "display-hero-mobile": ["Manrope"],
+            "label-subheadline": ["Manrope"],
+            "body-bold": ["Manrope"],
+            "headline-small": ["Manrope"],
+            "headline-medium": ["Manrope"],
+            "headline-large": ["Manrope"],
+            "label-caption": ["Manrope"],
+            "numeric-stat": ["Manrope"],
+            "headline-large-mobile": ["Manrope"],
+            "body-medium": ["Manrope"],
+            "body-large": ["Manrope"]
+          },
+          "fontSize": {
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "display-hero-mobile": ["44px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "label-subheadline": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "body-bold": ["15px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "headline-small": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "600" }],
+            "headline-medium": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-large": ["34px", { "lineHeight": "41px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "label-caption": ["11px", { "lineHeight": "13px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "numeric-stat": ["32px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-large-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "body-medium": ["15px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-large": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .sheet-shadow {
+      box-shadow: 0 16px 40px -8px rgba(0, 88, 188, 0.12), 0 4px 16px -2px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+<body class="bg-surface-dim flex justify-center items-center min-h-screen p-0 sm:p-4 selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- iPhone 14 Device Mockup Frame -->
+<div class="relative w-full max-w-[393px] h-[852px] bg-background rounded-[48px] overflow-hidden shadow-2xl flex flex-col border-[6px] border-on-surface/10">
+<!-- Top Dynamic Island & Status Bar Area -->
+<div class="relative z-30 pt-3 px-7 flex justify-between items-center text-on-surface select-none">
+<span class="font-body-bold text-body-bold text-[14px]">9:41</span>
+<!-- Dynamic Island Pill -->
+<div class="w-[120px] h-[32px] bg-inverse-surface rounded-full flex items-center justify-between px-3">
+<div class="w-3 h-3 rounded-full bg-surface/20 flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-fixed-dim"></span>
+</div>
+<span class="material-symbols-outlined text-surface/60 text-[14px]">sensors</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-on-surface">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface">wifi</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface">battery_full</span>
+</div>
+</div>
+<!-- Modal Drag Indicator Bar -->
+<div class="w-full flex justify-center pt-2 pb-1">
+<div class="w-9 h-1 bg-outline-variant/60 rounded-full"></div>
+</div>
+<!-- Modal Header (Task-Focused: Cancel, Title, Done) -->
+<header class="px-margin pt-2 pb-3 flex justify-between items-center z-20">
+<button class="font-headline-small text-headline-small text-primary hover:opacity-75 active:scale-95 transition-all" id="cancel-btn">
+        Cancel
+      </button>
+<h1 class="font-headline-small text-headline-small text-on-surface tracking-tight">
+        Log Hydration
+      </h1>
+<button class="font-headline-small text-headline-small text-primary font-bold hover:opacity-75 active:scale-95 transition-all" id="done-btn">
+        Done
+      </button>
+</header>
+<!-- Scrollable Content Canvas -->
+<main class="flex-1 overflow-y-auto no-scrollbar px-margin space-y-space-md pb-28">
+<!-- Custom Volume Stepper Card -->
+<section class="bg-surface-container-lowest rounded-2xl p-space-md border-[0.5px] border-surface-container-high/60 shadow-sm"><div class="flex items-center justify-between px-1 mb-2"><span class="font-label-subheadline text-label-subheadline text-on-surface-variant font-semibold tracking-wider">TARGET INTAKE</span><span class="font-label-caption text-label-caption text-primary font-medium flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">water_drop</span>Real-time Fluid</span></div><div class="relative flex flex-col items-center justify-center py-2"><div class="relative w-48 h-48 mx-auto flex items-center justify-center"><animated-svg src="{{DATA:ANIMATION:ANIMATION_24}}" class="w-48 h-48 mx-auto"></animated-svg><div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 drop-shadow-sm"><div class="flex items-baseline gap-1"><span class="font-numeric-stat text-[38px] font-bold text-on-surface tracking-tight leading-none" id="volume-display">12</span><span class="font-headline-small text-headline-small text-on-surface/80 font-bold">oz</span></div><span class="font-label-caption text-label-caption text-primary font-semibold tracking-wide mt-0.5 bg-surface-container-lowest/80 px-2 py-0.5 rounded-full border border-outline-variant/30 backdrop-blur-sm">355 ml</span></div><div class="absolute -left-1 sm:left-0 top-1/2 -translate-y-1/2 z-20"><button class="w-10 h-10 rounded-full bg-surface-container-lowest/90 backdrop-blur-md flex items-center justify-center text-primary border border-outline-variant/40 shadow-sm hover:bg-primary-fixed/40 active:scale-90 transition-all" id="decrement-btn" aria-label="Decrease volume"><span class="material-symbols-outlined text-[20px]">remove</span></button></div><div class="absolute -right-1 sm:right-0 top-1/2 -translate-y-1/2 z-20"><button class="w-10 h-10 rounded-full bg-surface-container-lowest/90 backdrop-blur-md flex items-center justify-center text-primary border border-outline-variant/40 shadow-sm hover:bg-primary-fixed/40 active:scale-90 transition-all" id="increment-btn" aria-label="Increase volume"><span class="material-symbols-outlined text-[20px]">add</span></button></div></div></div><div class="pt-3 flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar py-1"><button class="preset-chip px-3 py-1.5 rounded-full text-label-subheadline font-label-subheadline border border-outline-variant/30 text-on-surface-variant bg-surface-container-low hover:bg-surface-variant/40 transition-colors" data-vol="4">4 oz</button><button class="preset-chip px-3 py-1.5 rounded-full text-label-subheadline font-label-subheadline border border-outline-variant/30 text-on-surface-variant bg-surface-container-low hover:bg-surface-variant/40 transition-colors" data-vol="8">8 oz</button><button class="preset-chip px-3 py-1.5 rounded-full text-label-subheadline font-label-subheadline bg-primary text-on-primary font-bold shadow-sm transition-colors ring-2 ring-primary/20" data-vol="12">12 oz</button><button class="preset-chip px-3 py-1.5 rounded-full text-label-subheadline font-label-subheadline border border-outline-variant/30 text-on-surface-variant bg-surface-container-low hover:bg-surface-variant/40 transition-colors" data-vol="16">16 oz</button><button class="preset-chip px-3 py-1.5 rounded-full text-label-subheadline font-label-subheadline border border-outline-variant/30 text-on-surface-variant bg-surface-container-low hover:bg-surface-variant/40 transition-colors" data-vol="24">24 oz</button><button class="preset-chip px-3 py-1.5 rounded-full text-label-subheadline font-label-subheadline border border-outline-variant/30 text-on-surface-variant bg-surface-container-low hover:bg-surface-variant/40 transition-colors" data-vol="32">32 oz</button></div></section>
+<!-- Grouped iOS Inset List of Drink Types -->
+<section class="space-y-1.5">
+<div class="px-1 flex justify-between items-center">
+<span class="font-label-subheadline text-label-subheadline text-on-surface-variant tracking-wider font-semibold">BEVERAGE TYPE</span>
+<span class="font-label-caption text-label-caption text-primary">Hydration Index</span>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl border-[0.5px] border-surface-container-high/60 divide-y divide-surface-container overflow-hidden shadow-sm">
+<!-- Row 1: Pure Water -->
+<div class="beverage-row flex items-center justify-between p-3.5 hover:bg-surface-container-low/60 active:bg-surface-container transition-colors cursor-pointer" data-name="Water" data-rate="100%">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<div>
+<div class="font-body-bold text-body-bold text-on-surface flex items-center gap-1.5">
+                  Pure Water
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant flex items-center gap-2 mt-0.5">
+<span class="bg-surface-container px-1.5 py-0.5 rounded text-primary font-medium">100% hydration</span>
+<span class="">8 oz preset</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+</div>
+<!-- Row 2: Sparkling Water -->
+<div class="beverage-row flex items-center justify-between p-3.5 hover:bg-surface-container-low/60 active:bg-surface-container transition-colors cursor-pointer" data-name="Sparkling Water" data-rate="100%">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-secondary-fixed/50 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">bubble_chart</span>
+</div>
+<div>
+<div class="font-body-bold text-body-bold text-on-surface">Sparkling Water</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant flex items-center gap-2 mt-0.5">
+<span class="bg-surface-container px-1.5 py-0.5 rounded text-secondary font-medium">100% hydration</span>
+<span class="">12 oz preset</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+</div>
+<!-- Row 3: Electrolyte Drink -->
+<div class="beverage-row flex items-center justify-between p-3.5 hover:bg-surface-container-low/60 active:bg-surface-container transition-colors cursor-pointer" data-name="Electrolytes" data-rate="110%">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-secondary-container/60 flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div>
+<div class="font-body-bold text-body-bold text-on-surface">Electrolyte Drink</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant flex items-center gap-2 mt-0.5">
+<span class="bg-secondary-fixed-dim/30 px-1.5 py-0.5 rounded text-on-secondary-container font-semibold">110% hydration</span>
+<span class="">16 oz preset</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+</div>
+<!-- Row 4: Green / Herbal Tea -->
+<div class="beverage-row flex items-center justify-between p-3.5 hover:bg-surface-container-low/60 active:bg-surface-container transition-colors cursor-pointer bg-primary-fixed/20" data-name="Tea" data-rate="90%">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">eco</span>
+</div>
+<div>
+<div class="font-body-bold text-body-bold text-on-surface">Green / Herbal Tea</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant flex items-center gap-2 mt-0.5">
+<span class="bg-surface-container px-1.5 py-0.5 rounded text-on-surface-variant font-medium">90% hydration</span>
+<span class="">8 oz preset</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+</div>
+<!-- Row 5: Iced / Hot Coffee -->
+<div class="beverage-row flex items-center justify-between p-3.5 hover:bg-surface-container-low/60 active:bg-surface-container transition-colors cursor-pointer" data-name="Coffee" data-rate="80%">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-error-container/40 flex items-center justify-center text-on-primary-fixed-variant">
+<span class="material-symbols-outlined text-[20px]">coffee</span>
+</div>
+<div>
+<div class="font-body-bold text-body-bold text-on-surface">Iced / Hot Coffee</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant flex items-center gap-2 mt-0.5">
+<span class="bg-surface-container px-1.5 py-0.5 rounded text-on-surface-variant font-medium">80% hydration</span>
+<span class="">6 oz preset</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+</div>
+<!-- Row 6: Coconut Water -->
+<div class="beverage-row flex items-center justify-between p-3.5 hover:bg-surface-container-low/60 active:bg-surface-container transition-colors cursor-pointer" data-name="Coconut Water" data-rate="95%">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-secondary-fixed/40 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">spa</span>
+</div>
+<div>
+<div class="font-body-bold text-body-bold text-on-surface">Coconut Water</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant flex items-center gap-2 mt-0.5">
+<span class="bg-surface-container px-1.5 py-0.5 rounded text-on-surface-variant font-medium">95% hydration</span>
+<span class="">11 oz preset</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+</div>
+<!-- Row 7: Custom Beverage -->
+<div class="beverage-row flex items-center justify-between p-3.5 hover:bg-surface-container-low/60 active:bg-surface-container transition-colors cursor-pointer" data-name="Custom Drink" data-rate="Custom">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[20px]">science</span>
+</div>
+<div>
+<div class="font-body-bold text-body-bold text-on-surface">Custom Beverage</div>
+<div class="font-label-caption text-label-caption text-tertiary flex items-center gap-2 mt-0.5">
+<span class="bg-tertiary-fixed/60 px-1.5 py-0.5 rounded font-medium">Manual oz &amp; hydration factor</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">add_circle</span>
+</div>
+</div>
+</section>
+<!-- Native Note / Contextual Reminder Row -->
+<div class="p-3 bg-surface-container-low/60 rounded-xl flex items-start gap-2.5 border-[0.5px] border-surface-container">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5">info</span>
+<p class="font-label-subheadline text-label-subheadline text-on-surface-variant">
+          HydroFlow adjusts daily goal credit using physiological absorption rates for each drink type.
+        </p>
+</div>
+</main>
+<!-- Floating Action Trigger Bar (Bottom Frosted Dock) -->
+<div class="absolute bottom-0 left-0 right-0 p-space-md pb-7 bg-surface/85 backdrop-blur-xl border-t border-surface-container-high/30 z-40 flex flex-col items-center">
+<button class="w-full h-[52px] rounded-full bg-gradient-to-r from-primary to-secondary text-on-primary font-headline-small text-headline-small shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform" id="log-action-btn">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+<span id="log-button-text" class="">Log 12 oz Tea</span>
+</button>
+<div class="w-32 h-1 bg-on-surface/20 rounded-full mt-3"></div>
+</div>
+</div>
+<script>
+    // State
+    let currentVolume = 12;
+    let selectedBeverage = 'Water';
+
+    const volumeDisplay = document.getElementById('volume-display');
+    const logButtonText = document.getElementById('log-button-text');
+    const presetChips = document.querySelectorAll('.preset-chip');
+    const beverageRows = document.querySelectorAll('.beverage-row');
+
+    function updateView() {
+      volumeDisplay.textContent = currentVolume;
+      logButtonText.textContent = `Log ${currentVolume} oz ${selectedBeverage}`;
+
+      // Update chips style
+      presetChips.forEach(chip => {
+        const val = parseInt(chip.getAttribute('data-vol'));
+        if (val === currentVolume) {
+          chip.className = 'preset-chip px-3.5 py-1.5 rounded-full text-label-subheadline font-label-subheadline bg-primary text-on-primary font-bold shadow-sm transition-colors ring-2 ring-primary/20';
+        } else {
+          chip.className = 'preset-chip px-3.5 py-1.5 rounded-full text-label-subheadline font-label-subheadline border border-outline-variant/30 text-on-surface-variant bg-surface-container-low hover:bg-surface-variant/40 transition-colors';
+        }
+      });
+    }
+
+    // Increments
+    document.getElementById('increment-btn').addEventListener('click', () => {
+      currentVolume = Math.min(64, currentVolume + 1);
+      updateView();
+    });
+
+    document.getElementById('decrement-btn').addEventListener('click', () => {
+      currentVolume = Math.max(1, currentVolume - 1);
+      updateView();
+    });
+
+    // Preset clicks
+    presetChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        currentVolume = parseInt(chip.getAttribute('data-vol'));
+        updateView();
+      });
+    });
+
+    // Beverage selection
+    beverageRows.forEach(row => {
+      row.addEventListener('click', () => {
+        beverageRows.forEach(r => r.classList.remove('bg-primary-fixed/20'));
+        row.classList.add('bg-primary-fixed/20');
+        selectedBeverage = row.getAttribute('data-name');
+        updateView();
+      });
+    });
+
+    // Primary action feedback
+    const logBtn = document.getElementById('log-action-btn');
+    logBtn.addEventListener('click', () => {
+      logButtonText.textContent = `Logged!`;
+      setTimeout(() => {
+        updateView();
+      }, 900);
+    });
+
+    document.getElementById('cancel-btn').addEventListener('click', () => {
+      currentVolume = 12;
+      selectedBeverage = 'Water';
+      updateView();
+    });
+  </script>
+
+
+</body></html>

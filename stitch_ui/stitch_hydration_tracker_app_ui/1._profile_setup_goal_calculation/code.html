@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HydroFlow - Onboarding &amp; Profile Setup</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-surface": "#2f3034",
+            "on-tertiary": "#ffffff",
+            "inverse-on-surface": "#f1f0f5",
+            "background": "#faf9fe",
+            "tertiary-fixed": "#e2dfff",
+            "surface-dim": "#dad9df",
+            "tertiary-container": "#6664e4",
+            "secondary-fixed-dim": "#39dcd2",
+            "secondary": "#006a65",
+            "secondary-fixed": "#61f9ef",
+            "primary-container": "#0070eb",
+            "on-surface": "#1a1b1f",
+            "inverse-primary": "#adc6ff",
+            "surface-container": "#eeedf3",
+            "on-primary-container": "#fefcff",
+            "on-secondary-fixed-variant": "#00504c",
+            "on-error-container": "#93000a",
+            "surface-variant": "#e3e2e7",
+            "on-primary-fixed": "#001a41",
+            "on-primary": "#ffffff",
+            "outline-variant": "#c1c6d7",
+            "surface": "#faf9fe",
+            "primary": "#0058bc",
+            "on-secondary-fixed": "#00201e",
+            "surface-container-low": "#f4f3f8",
+            "on-tertiary-container": "#fffbff",
+            "surface-container-lowest": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed-dim": "#adc6ff",
+            "on-tertiary-fixed-variant": "#3631b4",
+            "error": "#ba1a1a",
+            "secondary-container": "#5df6ec",
+            "error-container": "#ffdad6",
+            "on-tertiary-fixed": "#0c006a",
+            "tertiary-fixed-dim": "#c2c1ff",
+            "on-secondary-container": "#006f69",
+            "on-surface-variant": "#414755",
+            "primary-fixed": "#d8e2ff",
+            "on-background": "#1a1b1f",
+            "on-secondary": "#ffffff",
+            "on-primary-fixed-variant": "#004493",
+            "surface-tint": "#005bc1",
+            "outline": "#717786",
+            "surface-container-highest": "#e3e2e7",
+            "tertiary": "#4c4aca",
+            "surface-container-high": "#e9e7ed",
+            "surface-bright": "#faf9fe"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.25rem",
+            "space-xl": "2rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "display-hero": ["Manrope"],
+            "display-hero-mobile": ["Manrope"],
+            "label-subheadline": ["Manrope"],
+            "body-bold": ["Manrope"],
+            "headline-small": ["Manrope"],
+            "headline-medium": ["Manrope"],
+            "headline-large": ["Manrope"],
+            "label-caption": ["Manrope"],
+            "numeric-stat": ["Manrope"],
+            "headline-large-mobile": ["Manrope"],
+            "body-medium": ["Manrope"],
+            "body-large": ["Manrope"]
+          },
+          "fontSize": {
+            "display-hero": ["56px", {"lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+            "display-hero-mobile": ["44px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+            "label-subheadline": ["13px", {"lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+            "body-bold": ["15px", {"lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "600"}],
+            "headline-small": ["17px", {"lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "600"}],
+            "headline-medium": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+            "headline-large": ["34px", {"lineHeight": "41px", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+            "label-caption": ["11px", {"lineHeight": "13px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "numeric-stat": ["32px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "headline-large-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+            "body-medium": ["15px", {"lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400"}],
+            "body-large": ["17px", {"lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-surface-container-high text-on-surface antialiased min-h-screen flex items-center justify-center p-0 md:p-6 select-none font-body-medium">
+<!-- iPhone 14 Device Shell Frame (390 x 844 scaled representation) -->
+<div class="relative w-full max-w-[393px] h-[852px] bg-background rounded-[50px] shadow-2xl overflow-hidden flex flex-col border-[9px] border-slate-900 ring-1 ring-black/10">
+<!-- iOS Dynamic Island & Status Bar -->
+<div class="relative z-30 pt-3 px-7 flex justify-between items-center bg-transparent">
+<!-- Time -->
+<span class="font-headline-small text-headline-small font-bold text-on-surface tracking-tight text-[15px]">9:41</span>
+<!-- Dynamic Island Capsule -->
+<div class="absolute left-1/2 -translate-x-1/2 top-2.5 w-[122px] h-[35px] bg-black rounded-full flex items-center justify-between px-3">
+<div class="w-3 h-3 rounded-full bg-slate-900/90 border border-slate-800"></div>
+<div class="flex items-center space-x-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-primary/40 animate-pulse"></div>
+</div>
+</div>
+<!-- System Status Icons (Cellular, Wifi, Battery) -->
+<div class="flex items-center space-x-1.5 text-on-surface">
+<span class="material-symbols-outlined text-[17px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[17px]">wifi</span>
+<span class="material-symbols-outlined text-[20px] rotate-90 leading-none">battery_full</span>
+</div>
+</div>
+<!-- Main Scrollable Onboarding Content Canvas -->
+<div class="flex-1 overflow-y-auto custom-scroll px-margin pb-28 pt-2">
+<!-- Top Brand Anchor & Intro Header -->
+<div class="flex flex-col items-center text-center mt-2 mb-5">
+<div class="relative mb-3 group">
+<div class="absolute inset-0 bg-primary/15 rounded-3xl blur-xl transition-all group-hover:blur-2xl"></div>
+<img alt="HydroFlow App Icon" class="relative w-20 h-20 rounded-2xl shadow-md border border-white/60 object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1UTcr_D-B9uynOUcNeRi3uARWVJ3WgY83dwhg9C4EEJCLdtu7amAtnceZrAkZO400dYOehg7Bp7-pr6v-MlhDPU7Acp37rUMWGisLXYvtyTgoG62Q0oeQt4FBcvgJ5DFXYWUI0P1zRRGIrJiuivWoXTUFoVbbiFgCSwPbkmpXnu8oPPcgtPZiMZ7oGdjkuf88NJnh5Z3Wj2tdf57ztK7QLXsGXUijP1hN-zPdHm0vbnKJU5_sjqDnU"/>
+</div>
+<div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-fixed/60 text-primary mb-1.5">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+<span class="font-label-caption text-label-caption font-bold">SETUP JOURNEY</span>
+</div>
+<h1 class="font-headline-large-mobile text-headline-large-mobile text-on-surface font-extrabold tracking-tight">Welcome to HydroFlow</h1>
+<p class="font-body-medium text-body-medium text-on-surface-variant max-w-[290px] mt-1.5 leading-snug">
+          Let's personalize your daily hydration target for optimal health &amp; energy.
+        </p>
+</div>
+<!-- Inset Grouped Form Cards (iOS 17 Clean Health Architecture) -->
+<div class="space-y-4">
+<!-- Section 1: User Essentials Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_4px_24px_-4px_rgba(0,122,255,0.06)] border border-black/[0.04]">
+<!-- Name Input Row -->
+<div class="pb-3 border-b border-surface-variant/40">
+<label class="block font-label-subheadline text-label-subheadline text-on-surface-variant mb-1 font-semibold">Your Name</label>
+<div class="flex items-center px-3 py-2.5 bg-surface-container-low rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+<span class="material-symbols-outlined text-outline text-[20px] mr-2">person</span>
+<input class="w-full bg-transparent border-0 p-0 text-on-surface font-body-bold text-body-bold focus:ring-0 focus:outline-none placeholder:text-outline" placeholder="Your Name" type="text" value="Alex Rivers"/>
+</div>
+</div>
+<!-- Weight Input + Segmented Unit Picker Row -->
+<div class="pt-3">
+<div class="flex justify-between items-center mb-1.5">
+<label class="font-label-subheadline text-label-subheadline text-on-surface-variant font-semibold">Current Body Weight</label>
+<!-- Segmented Unit Picker -->
+<div class="flex bg-surface-container-high p-0.5 rounded-lg text-[12px] font-bold">
+<button class="px-2.5 py-0.5 bg-surface-container-lowest text-primary rounded-md shadow-sm transition-all" type="button">lbs</button>
+<button class="px-2.5 py-0.5 text-on-surface-variant hover:text-on-surface transition-all" type="button">kg</button>
+</div>
+</div>
+<div class="flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-xl border border-outline-variant/30">
+<div class="flex items-baseline gap-1">
+<input class="w-16 bg-transparent border-0 p-0 text-on-surface font-numeric-stat text-numeric-stat font-bold focus:ring-0 focus:outline-none" type="number" value="165"/>
+<span class="font-body-bold text-body-bold text-on-surface-variant">lbs</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest text-primary shadow-sm flex items-center justify-center active:scale-95 transition-transform border border-outline-variant/20" type="button">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest text-primary shadow-sm flex items-center justify-center active:scale-95 transition-transform border border-outline-variant/20" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 2: Physiological Profile Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_4px_24px_-4px_rgba(0,122,255,0.06)] border border-black/[0.04]">
+<label class="block font-label-subheadline text-label-subheadline text-on-surface-variant font-semibold mb-2">Biological Sex</label>
+<!-- Segmented Selector: Male / Female / Non-binary -->
+<div class="grid grid-cols-3 gap-1.5 p-1 bg-surface-container-high/80 rounded-xl mb-3">
+<button class="py-2 rounded-lg font-body-bold text-body-bold text-on-surface-variant hover:text-on-surface transition-all text-center" type="button">Male</button>
+<button class="py-2 bg-surface-container-lowest text-primary rounded-lg shadow-sm font-body-bold text-body-bold transition-all text-center border border-black/[0.04]" type="button">Female</button>
+<button class="py-2 rounded-lg font-body-bold text-body-bold text-on-surface-variant hover:text-on-surface transition-all text-center" type="button">Other</button>
+</div>
+<!-- Expandable Sub-tag Pills (iOS Health Standard) -->
+<div class="pt-2 border-t border-surface-variant/40">
+<span class="block font-label-caption text-label-caption text-outline font-semibold mb-1.5 uppercase tracking-wider">Specific Physiological Modifiers</span>
+<div class="flex flex-wrap gap-2">
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant text-[13px] font-medium hover:border-primary transition-all" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary">child_care</span>
+<span>Pregnant</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary-fixed/40 border border-secondary text-on-secondary-fixed-variant text-[13px] font-bold shadow-xs" type="button">
+<span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span>Breastfeeding (+700ml)</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Section 3: Daily Activity Level Chips -->
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_4px_24px_-4px_rgba(0,122,255,0.06)] border border-black/[0.04]">
+<div class="flex justify-between items-center mb-2.5">
+<label class="font-label-subheadline text-label-subheadline text-on-surface-variant font-semibold">Daily Activity Level</label>
+<span class="font-label-caption text-label-caption text-primary font-bold">~45 min/day</span>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<!-- Sedentary -->
+<button class="flex items-center gap-2.5 p-2.5 rounded-xl border border-outline-variant/30 bg-surface-container-low/50 text-left hover:bg-surface-container-low transition-all" type="button">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[18px]">weekend</span>
+</div>
+<div>
+<div class="font-body-bold text-[14px] text-on-surface">Sedentary</div>
+<div class="font-label-caption text-[11px] text-outline">Desk routine</div>
+</div>
+</button>
+<!-- Moderate (Selected) -->
+<button class="flex items-center gap-2.5 p-2.5 rounded-xl border-2 border-primary bg-primary/5 text-left transition-all relative overflow-hidden" type="button">
+<div class="absolute -right-2 -bottom-2 w-7 h-7 bg-primary/10 rounded-full"></div>
+<div class="w-8 h-8 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">directions_walk</span>
+</div>
+<div>
+<div class="font-body-bold text-[14px] text-primary font-bold">Moderate</div>
+<div class="font-label-caption text-[11px] text-primary/80 font-semibold">Active walks</div>
+</div>
+</button>
+<!-- High -->
+<button class="flex items-center gap-2.5 p-2.5 rounded-xl border border-outline-variant/30 bg-surface-container-low/50 text-left hover:bg-surface-container-low transition-all" type="button">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[18px]">fitness_center</span>
+</div>
+<div>
+<div class="font-body-bold text-[14px] text-on-surface">High</div>
+<div class="font-label-caption text-[11px] text-outline">Intense training</div>
+</div>
+</button>
+<!-- Athlete -->
+<button class="flex items-center gap-2.5 p-2.5 rounded-xl border border-outline-variant/30 bg-surface-container-low/50 text-left hover:bg-surface-container-low transition-all" type="button">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+</div>
+<div>
+<div class="font-body-bold text-[14px] text-on-surface">Athlete</div>
+<div class="font-label-caption text-[11px] text-outline">Competitive</div>
+</div>
+</button>
+</div>
+</div>
+<!-- Section 4: Climate Segmented Picker -->
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_4px_24px_-4px_rgba(0,122,255,0.06)] border border-black/[0.04]">
+<label class="block font-label-subheadline text-label-subheadline text-on-surface-variant font-semibold mb-2">Regional Climate</label>
+<div class="grid grid-cols-4 gap-1 p-1 bg-surface-container-high/80 rounded-xl">
+<button class="py-2 rounded-lg font-label-subheadline text-[12px] text-on-surface-variant hover:text-on-surface transition-all text-center" type="button">Temperate</button>
+<button class="py-2 bg-surface-container-lowest text-primary rounded-lg shadow-sm font-body-bold text-[12px] transition-all text-center border border-black/[0.04]" type="button">Hot/Humid</button>
+<button class="py-2 rounded-lg font-label-subheadline text-[12px] text-on-surface-variant hover:text-on-surface transition-all text-center" type="button">Dry</button>
+<button class="py-2 rounded-lg font-label-subheadline text-[12px] text-on-surface-variant hover:text-on-surface transition-all text-center" type="button">Cold</button>
+</div>
+</div>
+<!-- Section 5: Calculated Baseline Preview Pill -->
+<div class="flex items-center justify-center">
+<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary-container/40 border border-secondary/30 text-on-secondary-container shadow-sm">
+<span class="material-symbols-outlined text-[18px] text-secondary" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="font-body-bold text-[13px] font-semibold">Estimated baseline: <strong class="font-extrabold text-on-surface">~88 fl oz / day</strong> (2,600 ml)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Dock CTA Container (iOS Bottom Sheet Style) -->
+<div class="absolute bottom-0 left-0 right-0 p-margin pb-7 bg-gradient-to-t from-background via-background/95 to-transparent backdrop-blur-md z-40 border-0">
+<!-- Primary Action Log CTA Pill Button -->
+<button class="w-full h-[52px] rounded-full bg-gradient-to-r from-primary to-[#00C7BE] text-on-primary font-headline-small text-headline-small flex items-center justify-center gap-2 shadow-[0_8px_24px_-4px_rgba(0,122,255,0.4)] active:scale-[0.97] hover:opacity-95 transition-all" type="button">
+<span>Calculate Daily Goal</span>
+<span class="material-symbols-outlined text-[20px] font-bold">arrow_forward</span>
+</button>
+<!-- Subtext Guarantee/Sync Note -->
+<p class="text-center font-label-caption text-label-caption text-outline mt-2 flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[13px]">lock</span>
+        Stored locally &amp; synced seamlessly with Apple Health
+      </p>
+<!-- iOS Home Indicator Bar -->
+<div class="w-32 h-1 bg-on-surface/20 rounded-full mx-auto mt-3"></div>
+</div>
+</div>
+</body></html>

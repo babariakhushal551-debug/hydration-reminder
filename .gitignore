@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+DerivedData/
+build/
+*.xcodeproj
+*.xcworkspace
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Packages/
+
+# Playgrounds
+*.playground/
+
+# XcodeGen generates the .xcodeproj from project.yml — don't commit it

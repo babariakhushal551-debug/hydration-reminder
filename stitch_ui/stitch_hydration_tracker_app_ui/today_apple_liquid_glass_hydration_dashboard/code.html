@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HydroFlow - Daily Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-surface": "#2f3034",
+            "on-tertiary": "#ffffff",
+            "inverse-on-surface": "#f1f0f5",
+            "background": "#faf9fe",
+            "tertiary-fixed": "#e2dfff",
+            "surface-dim": "#dad9df",
+            "tertiary-container": "#6664e4",
+            "secondary-fixed-dim": "#39dcd2",
+            "secondary": "#006a65",
+            "secondary-fixed": "#61f9ef",
+            "primary-container": "#0070eb",
+            "on-surface": "#1a1b1f",
+            "inverse-primary": "#adc6ff",
+            "surface-container": "#eeedf3",
+            "on-primary-container": "#fefcff",
+            "on-secondary-fixed-variant": "#00504c",
+            "on-error-container": "#93000a",
+            "surface-variant": "#e3e2e7",
+            "on-primary-fixed": "#001a41",
+            "on-primary": "#ffffff",
+            "outline-variant": "#c1c6d7",
+            "surface": "#faf9fe",
+            "primary": "#0058bc",
+            "on-secondary-fixed": "#00201e",
+            "surface-container-low": "#f4f3f8",
+            "on-tertiary-container": "#fffbff",
+            "surface-container-lowest": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed-dim": "#adc6ff",
+            "on-tertiary-fixed-variant": "#3631b4",
+            "error": "#ba1a1a",
+            "secondary-container": "#5df6ec",
+            "error-container": "#ffdad6",
+            "on-tertiary-fixed": "#0c006a",
+            "tertiary-fixed-dim": "#c2c1ff",
+            "on-secondary-container": "#006f69",
+            "on-surface-variant": "#414755",
+            "primary-fixed": "#d8e2ff",
+            "on-background": "#1a1b1f",
+            "on-secondary": "#ffffff",
+            "on-primary-fixed-variant": "#004493",
+            "surface-tint": "#005bc1",
+            "outline": "#717786",
+            "surface-container-highest": "#e3e2e7",
+            "tertiary": "#4c4aca",
+            "surface-container-high": "#e9e7ed",
+            "surface-bright": "#faf9fe"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.25rem",
+            "space-xl": "2rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "display-hero": ["Manrope"],
+            "display-hero-mobile": ["Manrope"],
+            "label-subheadline": ["Manrope"],
+            "body-bold": ["Manrope"],
+            "headline-small": ["Manrope"],
+            "headline-medium": ["Manrope"],
+            "headline-large": ["Manrope"],
+            "label-caption": ["Manrope"],
+            "numeric-stat": ["Manrope"],
+            "headline-large-mobile": ["Manrope"],
+            "body-medium": ["Manrope"],
+            "body-large": ["Manrope"]
+          },
+          "fontSize": {
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "display-hero-mobile": ["44px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "label-subheadline": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "body-bold": ["15px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "headline-small": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "600" }],
+            "headline-medium": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-large": ["34px", { "lineHeight": "41px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "label-caption": ["11px", { "lineHeight": "13px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "numeric-stat": ["32px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-large-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "body-medium": ["15px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-large": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes waveFlow {
+      0% { transform: translateX(0); }
+      50% { transform: translateX(-25%); }
+      100% { transform: translateX(-50%); }
+    }
+    @keyframes waveFlowReverse {
+      0% { transform: translateX(-50%); }
+      50% { transform: translateX(-20%); }
+      100% { transform: translateX(0); }
+    }
+    @keyframes floatBubble {
+      0% { transform: translateY(18px) scale(0.85); opacity: 0; }
+      40% { opacity: 0.8; }
+      80% { opacity: 0.9; }
+      100% { transform: translateY(-22px) scale(1.1); opacity: 0; }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 1; }
+    }
+    .animate-wave-flow {
+      animation: waveFlow 7s ease-in-out infinite alternate;
+    }
+    .animate-wave-flow-slow {
+      animation: waveFlowReverse 10s ease-in-out infinite alternate;
+    }
+    .bubble-1 {
+      animation: floatBubble 3.2s ease-in infinite;
+    }
+    .bubble-2 {
+      animation: floatBubble 4.1s ease-in 1.2s infinite;
+    }
+    .bubble-3 {
+      animation: floatBubble 2.8s ease-in 2s infinite;
+    }
+    .pulse-glow {
+      animation: pulseGlow 2.5s ease-in-out infinite;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface-container-low min-h-screen flex items-center justify-center p-0 md:p-6 text-on-surface">
+<!-- iPhone 14 Device Canvas Mockup Container -->
+<div class="relative w-full max-w-[393px] h-[852px] bg-background shadow-2xl rounded-[50px] overflow-hidden border-[8px] border-surface-container flex flex-col justify-between">
+<!-- iPhone 14 Dynamic Island & Status Bar Area -->
+<div class="absolute top-0 left-0 right-0 z-50 pt-3 px-7 flex justify-between items-center select-none pointer-events-none">
+<span class="font-body-bold text-label-subheadline font-semibold text-on-surface tracking-tight">9:41</span>
+<!-- Dynamic Island pill -->
+<div class="w-[124px] h-[34px] bg-black rounded-full mx-auto flex items-center justify-between px-3 shadow-inner">
+<div class="w-3 h-3 rounded-full bg-[#050505]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#111] ring-1 ring-[#222]"></div>
+</div>
+<!-- Right Status Icons -->
+<div class="flex items-center space-x-1.5 text-on-surface">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[19px]">battery_full</span>
+</div>
+</div>
+<!-- TopAppBar Section -->
+<header class="bg-surface/85 backdrop-blur-md flex justify-between items-center w-full px-4 pt-12 pb-2 z-40 border-b border-surface-variant/30">
+<div class="flex items-center space-x-2.5">
+<div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary-fixed to-secondary-fixed/50 flex items-center justify-center text-primary shadow-sm border border-white/60">
+<span class="material-symbols-outlined text-primary text-[22px]" data-icon="water_drop" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<div>
+<div class="flex items-center space-x-1.5">
+<h1 class="text-headline-small font-headline-small text-on-surface leading-tight font-bold">Today, Oct 24</h1>
+<span class="inline-block w-2 h-2 rounded-full bg-secondary animate-ping"></span>
+</div>
+<div class="inline-flex items-center space-x-1 bg-surface-container-high/70 px-2 py-0.5 rounded-full mt-0.5 border border-surface-variant/40">
+<span class="text-[12px] leading-none">🔥</span>
+<span class="font-label-caption text-label-caption text-primary font-bold">6 Day Streak</span>
+<span class="text-[10px] text-outline">• Top 10%</span>
+</div>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<button aria-label="Reminders" class="w-9 h-9 rounded-full bg-surface-container-lowest/90 border border-surface-variant/40 flex items-center justify-center text-on-surface shadow-sm active:scale-95 transition-transform relative">
+<span class="material-symbols-outlined text-on-surface-variant text-[19px]" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button aria-label="Calendar" class="w-9 h-9 rounded-full bg-surface-container-lowest/90 border border-surface-variant/40 flex items-center justify-center text-on-surface shadow-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-on-surface-variant text-[19px]" data-icon="calendar_today">calendar_today</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Main Content Stream -->
+<main class="flex-1 overflow-y-auto px-margin pb-28 pt-3 space-y-3.5 no-scrollbar">
+<!-- Hydration Rhythm Smart Status Notification Pill -->
+<div class="bg-gradient-to-r from-primary-fixed/50 via-secondary-fixed/30 to-surface-container-lowest backdrop-blur-md rounded-2xl p-2.5 px-3.5 border border-primary-fixed flex items-center justify-between shadow-sm">
+<div class="flex items-center space-x-2.5">
+<div class="w-7 h-7 rounded-xl bg-primary text-white flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[16px] animate-bounce" data-icon="water_drop">water_drop</span>
+</div>
+<div>
+<div class="flex items-center space-x-1">
+<span class="font-label-caption font-bold text-primary uppercase tracking-wider text-[10px]">Hydration Rhythm</span>
+<span class="text-[10px] text-secondary font-semibold">• Optimal</span>
+</div>
+<p class="font-label-subheadline text-on-surface text-[12.5px] font-medium leading-none mt-0.5">Next recommended sip in <span class="font-bold text-primary">24 mins</span></p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]">chevron_right</span>
+</div>
+<!-- Centerpiece: Ultra-Immersive Living Glass Liquid Reservoir Card -->
+<section class="relative bg-gradient-to-b from-surface-container-lowest/95 to-surface-container-low/70 rounded-[32px] p-5 shadow-lg border border-white/80 overflow-hidden backdrop-blur-xl"><!-- Ambient Aquatic Lighting Glows -->
+<div class="absolute -top-16 -right-10 w-52 h-52 rounded-full bg-primary/15 blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-12 -left-10 w-48 h-48 rounded-full bg-secondary-fixed/50 blur-3xl pointer-events-none"></div>
+<div class="relative flex flex-col items-center">
+<!-- Apple Liquid Glass Orb Wrapper with Surrounding Progress Radial Indicator -->
+<div class="relative w-64 h-64 flex items-center justify-center">
+<!-- Outer Radial Progress Arc -->
+<svg class="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none z-20" viewbox="0 0 256 256">
+<circle cx="128" cy="128" fill="transparent" opacity="0.2" r="120" stroke="#717786" stroke-dasharray="753.98" stroke-width="4"></circle>
+<circle cx="128" cy="128" fill="transparent" filter="drop-shadow(0 2px 6px rgba(0,112,235,0.4))" r="120" stroke="#0070eb" stroke-dasharray="753.98" stroke-dashoffset="452.38" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<!-- Embedded Animated Apple Liquid Glass Orb SVG Container -->
+<div class="relative w-[228px] h-[228px] rounded-full overflow-hidden shadow-[inset_0_2px_14px_rgba(255,255,255,0.95),0_20px_40px_-8px_rgba(0,88,188,0.35)] border border-white/90 backdrop-blur-md">
+<svg class="w-full h-full" viewbox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<lineargradient id="appleLiquidGrad1" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#38bdf8"></stop>
+<stop offset="35%" stop-color="#0284c7"></stop>
+<stop offset="100%" stop-color="#1d4ed8"></stop>
+</lineargradient>
+<lineargradient id="appleLiquidGrad2" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#7dd3fc" stop-opacity="0.85"></stop>
+<stop offset="50%" stop-color="#0ea5e9" stop-opacity="0.75"></stop>
+<stop offset="100%" stop-color="#2563eb" stop-opacity="0.95"></stop>
+</lineargradient>
+<radialgradient cx="50%" cy="85%" id="causticPulseGlow" r="65%">
+<stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"></stop>
+<stop offset="50%" stop-color="#0284c7" stop-opacity="0.4"></stop>
+<stop offset="100%" stop-color="#0369a1" stop-opacity="0"></stop>
+</radialgradient>
+<lineargradient id="specularDome" x1="25%" x2="75%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"></stop>
+<stop offset="25%" stop-color="#ffffff" stop-opacity="0.35"></stop>
+<stop offset="60%" stop-color="#ffffff" stop-opacity="0.0"></stop>
+<stop offset="100%" stop-color="#38bdf8" stop-opacity="0.25"></stop>
+</lineargradient>
+<lineargradient id="rimSheen" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"></stop>
+<stop offset="30%" stop-color="#ffffff" stop-opacity="0.2"></stop>
+<stop offset="70%" stop-color="#38bdf8" stop-opacity="0.25"></stop>
+<stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"></stop>
+</lineargradient>
+<clippath id="appleGlassOrbClip">
+<circle cx="160" cy="160" r="142"></circle>
+</clippath>
+<filter height="140%" id="softFluidGlow" width="140%" x="-20%" y="-20%">
+<fegaussianblur in="SourceGraphic" result="blur" stddeviation="4"></fegaussianblur>
+<fecomposite in="SourceGraphic" in2="blur" operator="over"></fecomposite>
+</filter>
+</defs>
+<style>
+          @keyframes waveBackStream { 0% { transform: translateX(0); } 50% { transform: translateX(-90px); } 100% { transform: translateX(0); } }
+          @keyframes waveFrontStream { 0% { transform: translateX(-90px); } 50% { transform: translateX(0); } 100% { transform: translateX(-90px); } }
+          @keyframes bubbleA { 0% { transform: translate(135px, 275px) scale(0.5); opacity: 0; } 25% { opacity: 0.85; } 80% { opacity: 0.65; } 100% { transform: translate(125px, 175px) scale(1.1); opacity: 0; } }
+          @keyframes bubbleB { 0% { transform: translate(185px, 285px) scale(0.4); opacity: 0; } 30% { opacity: 0.9; } 85% { opacity: 0.5; } 100% { transform: translate(195px, 178px) scale(1.0); opacity: 0; } }
+          @keyframes bubbleC { 0% { transform: translate(105px, 265px) scale(0.35); opacity: 0; } 35% { opacity: 0.8; } 80% { opacity: 0.4; } 100% { transform: translate(100px, 180px) scale(0.9); opacity: 0; } }
+          @keyframes causticBreathing { 0%, 100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.08); } }
+          .wave-back-path { animation: waveBackStream 6s ease-in-out infinite; }
+          .wave-front-path { animation: waveFrontStream 4.2s ease-in-out infinite; }
+          .bubble-float-1 { animation: bubbleA 4s ease-in-out infinite; }
+          .bubble-float-2 { animation: bubbleB 3.5s ease-in-out 1.2s infinite; }
+          .bubble-float-3 { animation: bubbleC 4.8s ease-in-out 2.1s infinite; }
+          .caustic-pulse-layer { transform-origin: 160px 240px; animation: causticBreathing 3.8s ease-in-out infinite; }
+        </style>
+<!-- Outer Glass Background -->
+<circle cx="160" cy="160" fill="#f8fafc" fill-opacity="0.75" r="146"></circle>
+<!-- Fluid Inner Body Clipped to Perfect Sphere -->
+<g clip-path="url(#appleGlassOrbClip)">
+<rect fill="#0284c7" height="160" opacity="0.15" width="320" x="0" y="160"></rect>
+<ellipse class="caustic-pulse-layer" cx="160" cy="265" fill="url(#causticPulseGlow)" rx="125" ry="45"></ellipse>
+<!-- Back Wave -->
+<g class="wave-back-path">
+<path d="M -120 185 C -60 170, 0 200, 60 185 C 120 170, 180 200, 240 185 C 300 170, 360 200, 420 185 C 480 170, 540 200, 600 185 L 600 330 L -120 330 Z" fill="url(#appleLiquidGrad2)"></path>
+</g>
+<!-- Floating Micro Bubbles -->
+<circle class="bubble-float-1" cx="0" cy="0" fill="#e0f2fe" filter="url(#softFluidGlow)" r="6"></circle>
+<circle class="bubble-float-2" cx="0" cy="0" fill="#bae6fd" opacity="0.9" r="4.5"></circle>
+<circle class="bubble-float-3" cx="0" cy="0" fill="#ffffff" opacity="0.95" r="3.5"></circle>
+<!-- Front Wave -->
+<g class="wave-front-path">
+<path d="M -120 190 C -50 205, 10 175, 70 190 C 130 205, 190 175, 250 190 C 310 205, 370 175, 430 190 C 490 205, 550 175, 610 190 L 610 330 L -120 330 Z" fill="url(#appleLiquidGrad1)"></path>
+<path d="M -120 190 C -50 205, 10 175, 70 190 C 130 205, 190 175, 250 190 C 310 205, 370 175, 430 190 C 490 205, 550 175, 610 190" fill="none" filter="url(#softFluidGlow)" opacity="0.95" stroke="#e0f2fe" stroke-linecap="round" stroke-width="3.5"></path>
+</g>
+<!-- Apple Curvature Specular Lens Highlight -->
+<ellipse cx="140" cy="80" fill="url(#specularDome)" rx="90" ry="46" transform="rotate(-18 140 80)"></ellipse>
+<!-- Bottom Internal Refraction Arc -->
+<path d="M 55 242 C 95 285, 225 285, 265 242" fill="none" filter="url(#softFluidGlow)" stroke="rgba(255, 255, 255, 0.7)" stroke-linecap="round" stroke-width="3"></path>
+</g>
+<!-- Beveled Glass Rim Sheen -->
+<circle cx="160" cy="160" fill="none" opacity="0.95" r="142" stroke="url(#rimSheen)" stroke-width="4.5"></circle>
+<circle cx="160" cy="160" fill="none" r="143" stroke="rgba(2, 132, 199, 0.25)" stroke-width="1.5"></circle>
+</svg>
+<!-- Floating Dynamic Frosted Glass Hydration Typography Badge -->
+<div class="absolute inset-0 z-30 flex flex-col items-center justify-center text-center select-none pointer-events-none px-4">
+<div class="w-8 h-8 rounded-full bg-white/80 backdrop-blur-md shadow-sm flex items-center justify-center text-primary mb-1 border border-white/80">
+<span class="material-symbols-outlined text-[18px] text-primary" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<div class="font-display-hero-mobile text-display-hero-mobile text-on-surface tracking-tight leading-none drop-shadow-sm flex items-baseline">
+          36<span class="text-headline-medium font-headline-medium text-on-surface-variant font-bold ml-1">oz</span>
+</div>
+<div class="flex items-center space-x-1.5 mt-1.5 px-3 py-0.5 rounded-full bg-white/75 backdrop-blur-md border border-white/60 shadow-2xs">
+<span class="font-label-subheadline text-label-subheadline text-on-surface font-semibold">Goal: 90 oz</span>
+<span class="px-1.5 py-0.2 text-[11px] font-bold rounded-full bg-primary text-white">40%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Dynamic Feedback Pill -->
+<div class="mt-4 flex items-center space-x-2 px-3.5 py-1.5 bg-surface-container-high/70 backdrop-blur-md rounded-full border border-surface-variant/40 shadow-xs">
+<span class="text-secondary text-sm">💧</span>
+<span class="font-label-caption text-label-caption text-on-surface font-semibold tracking-tight">54 oz remaining to stay fully energized</span>
+</div>
+</div></section>
+<!-- Quick Stats Row: Two Inset Pill Cards -->
+<section class="grid grid-cols-2 gap-3">
+<!-- Card 1: Last drink -->
+<div class="bg-surface-container-lowest rounded-2xl p-3.5 border border-surface-variant/40 shadow-sm flex flex-col justify-between">
+<div class="flex items-center space-x-2">
+<div class="w-7 h-7 rounded-xl bg-primary-fixed/50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[17px]" data-icon="schedule">schedule</span>
+</div>
+<span class="font-label-caption text-label-caption text-outline font-medium">Last drink</span>
+</div>
+<div class="mt-2.5">
+<p class="font-body-bold text-body-bold text-on-surface">8 oz Water</p>
+<p class="font-label-caption text-label-caption text-outline mt-0.5">45m ago • Office Mug</p>
+</div>
+</div>
+<!-- Card 2: Remaining -->
+<div class="bg-surface-container-lowest rounded-2xl p-3.5 border border-surface-variant/40 shadow-sm flex flex-col justify-between">
+<div class="flex items-center space-x-2">
+<div class="w-7 h-7 rounded-xl bg-secondary-container/40 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[17px]" data-icon="track_changes">track_changes</span>
+</div>
+<span class="font-label-caption text-label-caption text-outline font-medium">Daily Target</span>
+</div>
+<div class="mt-2.5">
+<p class="font-body-bold text-body-bold text-on-surface">54 oz left</p>
+<p class="font-label-caption text-label-caption text-secondary font-semibold mt-0.5">approx. 3.5 glasses</p>
+</div>
+</div>
+</section>
+<!-- Tactile Quick-Log Shelf with Realistic Vessel Icons -->
+<section class="bg-surface-container-lowest rounded-3xl p-4 border border-surface-variant/40 shadow-sm space-y-3">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">bolt</span>
+<h2 class="font-body-bold text-body-bold text-on-surface text-[14px]">Quick One-Tap Log</h2>
+</div>
+<span class="font-label-caption text-outline text-[11px]">Instant Add</span>
+</div>
+<!-- 4 Rapid Vessel Action Chips -->
+<div class="grid grid-cols-4 gap-2">
+<!-- Vessel 1: Glass -->
+<button aria-label="Log 8 oz Glass" class="group flex flex-col items-center p-2.5 rounded-2xl bg-surface-container-low hover:bg-primary-fixed/40 active:scale-95 transition-all border border-surface-variant/30 hover:border-primary/40 shadow-xs">
+<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="local_cafe">local_cafe</span>
+</div>
+<span class="font-body-bold text-on-surface text-[12px] mt-1.5 font-bold">+8 oz</span>
+<span class="font-label-caption text-outline text-[10px]">Glass</span>
+</button>
+<!-- Vessel 2: Mug -->
+<button aria-label="Log 12 oz Mug" class="group flex flex-col items-center p-2.5 rounded-2xl bg-surface-container-low hover:bg-primary-fixed/40 active:scale-95 transition-all border border-surface-variant/30 hover:border-primary/40 shadow-xs">
+<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="coffee">coffee</span>
+</div>
+<span class="font-body-bold text-on-surface text-[12px] mt-1.5 font-bold">+12 oz</span>
+<span class="font-label-caption text-outline text-[10px]">Mug</span>
+</button>
+<!-- Vessel 3: Bottle -->
+<button aria-label="Log 16 oz Bottle" class="group flex flex-col items-center p-2.5 rounded-2xl bg-surface-container-low hover:bg-primary-fixed/40 active:scale-95 transition-all border border-surface-variant/30 hover:border-primary/40 shadow-xs">
+<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="water_full">water_full</span>
+</div>
+<span class="font-body-bold text-on-surface text-[12px] mt-1.5 font-bold">+16 oz</span>
+<span class="font-label-caption text-outline text-[10px]">Bottle</span>
+</button>
+<!-- Vessel 4: Flask -->
+<button aria-label="Log 24 oz Flask" class="group flex flex-col items-center p-2.5 rounded-2xl bg-surface-container-low hover:bg-primary-fixed/40 active:scale-95 transition-all border border-surface-variant/30 hover:border-primary/40 shadow-xs">
+<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-secondary group-hover:scale-105 transition-transform shadow-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="sports_bar">sports_bar</span>
+</div>
+<span class="font-body-bold text-on-surface text-[12px] mt-1.5 font-bold">+24 oz</span>
+<span class="font-label-caption text-outline text-[10px]">Flask</span>
+</button>
+</div>
+<!-- Primary Floating Action Ripple Bar -->
+<div class="pt-1 flex items-center justify-between">
+<!-- Custom Amount Button -->
+<button aria-label="Custom Amount" class="flex items-center space-x-2 px-3 py-2 rounded-xl bg-surface-container text-on-surface-variant active:scale-95 transition-transform text-xs font-semibold hover:bg-surface-variant">
+<span class="material-symbols-outlined text-[17px]" data-icon="tune">tune</span>
+<span>Custom</span>
+</button>
+<!-- Prominent Glowing Main Action Button -->
+<button aria-label="Log Fluid Intake" class="relative flex items-center space-x-2.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary via-primary-container to-secondary-fixed-dim text-white font-bold shadow-md shadow-primary/30 active:scale-95 transition-all group">
+<div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-[17px] text-white" data-icon="add">add</span>
+</div>
+<span class="text-sm tracking-tight font-body-bold">Log Sip</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="water_drop" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</button>
+<!-- Quick Repeat Previous Button -->
+<button aria-label="Repeat Last Sip" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-surface-container text-on-surface-variant active:scale-95 transition-transform text-xs font-semibold hover:bg-surface-variant">
+<span class="material-symbols-outlined text-[17px]" data-icon="replay">replay</span>
+<span>+8 oz</span>
+</button>
+</div>
+</section>
+<!-- Recent Sips Activity Feed with Hydration Multipliers -->
+<section class="space-y-2">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center space-x-1.5">
+<h2 class="font-body-bold text-body-bold text-on-surface">Recent Sips Today</h2>
+<span class="text-xs text-outline font-medium">(2 logged)</span>
+</div>
+<button class="font-label-caption text-label-caption text-primary font-bold hover:underline flex items-center space-x-0.5">
+<span>View All</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl border border-surface-variant/40 divide-y divide-surface-container overflow-hidden shadow-sm">
+<!-- Item 1 -->
+<div class="p-3.5 flex items-center justify-between group hover:bg-surface-container-low/40 transition-colors">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-xl bg-primary-fixed/40 flex items-center justify-center text-primary shadow-2xs">
+<span class="material-symbols-outlined text-[19px]" data-icon="water_full">water_full</span>
+</div>
+<div>
+<div class="flex items-center space-x-1.5">
+<p class="font-body-bold text-body-bold text-on-surface leading-tight">16 oz Pure Mineral Water</p>
+<span class="px-1.5 py-0.2 bg-primary/10 text-primary text-[10px] font-bold rounded">100%</span>
+</div>
+<p class="font-label-caption text-label-caption text-outline mt-0.5">9:15 AM • Glass Bottle</p>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label-subheadline text-label-subheadline font-bold text-primary">+16 oz</span>
+<button aria-label="More item options" class="text-outline hover:text-on-surface transition-colors p-1">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-3.5 flex items-center justify-between group hover:bg-surface-container-low/40 transition-colors">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-xl bg-secondary-fixed/50 flex items-center justify-center text-secondary shadow-2xs">
+<span class="material-symbols-outlined text-[19px]" data-icon="emoji_objects">emoji_objects</span>
+</div>
+<div>
+<div class="flex items-center space-x-1.5">
+<p class="font-body-bold text-body-bold text-on-surface leading-tight">20 oz Lemon Electrolytes</p>
+<span class="px-1.5 py-0.2 bg-secondary/10 text-secondary text-[10px] font-bold rounded">110%</span>
+</div>
+<p class="font-label-caption text-label-caption text-outline mt-0.5">7:30 AM • Workout Flask</p>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<span class="font-label-subheadline text-label-subheadline font-bold text-primary">+20 oz</span>
+<button aria-label="More item options" class="text-outline hover:text-on-surface transition-colors p-1">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="bg-surface/90 backdrop-blur-xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin pb-6 pt-2.5 border-t border-surface-variant/40 shadow-lg">
+<!-- Destination 1: Today (ACTIVE) -->
+<a class="flex flex-col items-center justify-center text-primary font-bold hover:text-primary transition-colors active:scale-95 transition-all duration-150 relative" href="#">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px] text-primary" data-icon="water_drop" data-weight="fill" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<span class="font-label-caption text-label-caption mt-0.5 text-primary font-bold">Today</span>
+</a>
+<!-- Destination 2: Add -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-95 transition-all duration-150" href="#">
+<div class="w-8 h-8 flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]" data-icon="add_circle">add_circle</span>
+</div>
+<span class="font-label-caption text-label-caption mt-0.5">Add</span>
+</a>
+<!-- Destination 3: Analytics -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-95 transition-all duration-150" href="#">
+<div class="w-8 h-8 flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]" data-icon="insights">insights</span>
+</div>
+<span class="font-label-caption text-label-caption mt-0.5">Analytics</span>
+</a>
+<!-- Destination 4: History -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-95 transition-all duration-150" href="#">
+<div class="w-8 h-8 flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]" data-icon="history">history</span>
+</div>
+<span class="font-label-caption text-label-caption mt-0.5">History</span>
+</a>
+<!-- Destination 5: Settings -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-95 transition-all duration-150" href="#">
+<div class="w-8 h-8 flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]" data-icon="settings">settings</span>
+</div>
+<span class="font-label-caption text-label-caption mt-0.5">Settings</span>
+</a>
+</nav>
+<!-- iOS Home Indicator bar -->
+<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-on-surface/25 rounded-full pointer-events-none z-50"></div>
+</div>
+</body></html>

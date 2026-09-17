@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HydroFlow - Hydration Insights</title>
+<!-- Google Fonts: Manrope -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-surface": "#2f3034",
+            "on-tertiary": "#ffffff",
+            "inverse-on-surface": "#f1f0f5",
+            "background": "#faf9fe",
+            "tertiary-fixed": "#e2dfff",
+            "surface-dim": "#dad9df",
+            "tertiary-container": "#6664e4",
+            "secondary-fixed-dim": "#39dcd2",
+            "secondary": "#006a65",
+            "secondary-fixed": "#61f9ef",
+            "primary-container": "#0070eb",
+            "on-surface": "#1a1b1f",
+            "inverse-primary": "#adc6ff",
+            "surface-container": "#eeedf3",
+            "on-primary-container": "#fefcff",
+            "on-secondary-fixed-variant": "#00504c",
+            "on-error-container": "#93000a",
+            "surface-variant": "#e3e2e7",
+            "on-primary-fixed": "#001a41",
+            "on-primary": "#ffffff",
+            "outline-variant": "#c1c6d7",
+            "surface": "#faf9fe",
+            "primary": "#0058bc",
+            "on-secondary-fixed": "#00201e",
+            "surface-container-low": "#f4f3f8",
+            "on-tertiary-container": "#fffbff",
+            "surface-container-lowest": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed-dim": "#adc6ff",
+            "on-tertiary-fixed-variant": "#3631b4",
+            "error": "#ba1a1a",
+            "secondary-container": "#5df6ec",
+            "error-container": "#ffdad6",
+            "on-tertiary-fixed": "#0c006a",
+            "tertiary-fixed-dim": "#c2c1ff",
+            "on-secondary-container": "#006f69",
+            "on-surface-variant": "#414755",
+            "primary-fixed": "#d8e2ff",
+            "on-background": "#1a1b1f",
+            "on-secondary": "#ffffff",
+            "on-primary-fixed-variant": "#004493",
+            "surface-tint": "#005bc1",
+            "outline": "#717786",
+            "surface-container-highest": "#e3e2e7",
+            "tertiary": "#4c4aca",
+            "surface-container-high": "#e9e7ed",
+            "surface-bright": "#faf9fe"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin": "1rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.25rem",
+            "space-xl": "2rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "display-hero": ["Manrope"],
+            "display-hero-mobile": ["Manrope"],
+            "label-subheadline": ["Manrope"],
+            "body-bold": ["Manrope"],
+            "headline-small": ["Manrope"],
+            "headline-medium": ["Manrope"],
+            "headline-large": ["Manrope"],
+            "label-caption": ["Manrope"],
+            "numeric-stat": ["Manrope"],
+            "headline-large-mobile": ["Manrope"],
+            "body-medium": ["Manrope"],
+            "body-large": ["Manrope"]
+          },
+          "fontSize": {
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "display-hero-mobile": ["44px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "label-subheadline": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "body-bold": ["15px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "headline-small": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "600" }],
+            "headline-medium": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-large": ["34px", { "lineHeight": "41px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "label-caption": ["11px", { "lineHeight": "13px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "numeric-stat": ["32px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-large-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "body-medium": ["15px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-large": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Squircle & Glassmorphism refinements */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 0.5px solid rgba(0, 0, 0, 0.05);
+    }
+    .glass-chip {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+<body class="bg-surface-container-high min-h-screen flex justify-center items-start sm:py-8 font-body-medium text-on-surface antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- iPhone 14 Frame Container -->
+<div class="w-full max-w-[393px] h-[852px] bg-background relative overflow-hidden shadow-2xl sm:rounded-[50px] border-[6px] border-surface-container flex flex-col justify-between">
+<!-- Top System Area (Dynamic Island & Status Bar) -->
+<div class="w-full pt-3 px-7 flex justify-between items-center z-50 select-none bg-surface/85 backdrop-blur-md">
+<!-- Status Clock -->
+<span class="font-headline-small text-headline-small text-on-surface tracking-tight text-xs font-semibold">9:41</span>
+<!-- Dynamic Island pill cutout -->
+<div class="w-28 h-7 bg-on-surface rounded-full flex items-center justify-between px-2.5 mx-auto">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary-fixed/30 flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-secondary-fixed animate-pulse"></div>
+</div>
+<div class="w-2.5 h-2.5 rounded-full bg-surface-variant/20"></div>
+</div>
+<!-- Signal & Battery Icons -->
+<div class="flex items-center space-x-1.5 text-on-surface">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">battery_full</span>
+</div>
+</div>
+<!-- Top Navigation Header (from Shared Components TopAppBar) -->
+<header class="bg-surface/85 backdrop-blur-md text-primary flex justify-between items-center w-full px-4 pt-3 pb-2 z-40 select-none">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary text-[26px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+<h1 class="font-headline-medium text-headline-medium tracking-tight text-primary">HydroFlow</h1>
+</div>
+<button aria-label="Calendar Archive" class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+</button>
+</header>
+<!-- Scrollable Content Canvas -->
+<main class="flex-1 overflow-y-auto px-margin pt-1 pb-24 space-y-4 no-scrollbar">
+<!-- Page Title & Segmented Control -->
+<div class="flex flex-col space-y-3 pt-1">
+<div class="flex justify-between items-baseline">
+<h2 class="font-headline-large-mobile text-headline-large-mobile text-on-surface tracking-tight">Hydration Insights</h2>
+<span class="font-label-caption text-label-caption text-outline">Oct 20–26</span>
+</div>
+<!-- Segmented Filter Control -->
+<div class="bg-surface-container-high/60 p-1 rounded-xl flex items-center text-center">
+<button class="flex-1 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-body-bold text-label-subheadline shadow-sm transition-all duration-150">
+            Week
+          </button>
+<button class="flex-1 py-1.5 rounded-lg text-on-surface-variant font-label-subheadline text-label-subheadline hover:text-on-surface transition-all">
+            Month
+          </button>
+<button class="flex-1 py-1.5 rounded-lg text-on-surface-variant font-label-subheadline text-label-subheadline hover:text-on-surface transition-all">
+            Year
+          </button>
+</div>
+</div>
+<!-- Weekly Summary Card -->
+<div class="glass-card rounded-2xl p-4 shadow-sm relative overflow-hidden flex items-center justify-between">
+<div class="space-y-1">
+<span class="font-label-caption text-label-caption text-primary uppercase font-bold tracking-wider">Weekly Metric</span>
+<div class="font-headline-medium text-headline-medium text-on-surface">5 / 7 Days Goal Met</div>
+<div class="flex items-center space-x-2 text-on-surface-variant pt-0.5">
+<span class="font-body-medium text-label-subheadline">Daily Avg:</span>
+<span class="font-body-bold text-body-bold text-primary font-bold">86 oz</span>
+<span class="font-label-caption text-label-caption text-secondary flex items-center bg-secondary-container/30 px-1.5 py-0.5 rounded-full">
+              +4% vs lw
+            </span>
+</div>
+</div>
+<!-- Glowing Checkmark Badge -->
+<div class="w-13 h-13 rounded-2xl bg-secondary-fixed/30 border border-secondary-fixed-dim/40 flex items-center justify-center shadow-[0_0_16px_rgba(57,220,210,0.45)]">
+<span class="material-symbols-outlined text-secondary text-[30px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Interactive Weekly Bar Chart Card -->
+<div class="glass-card rounded-2xl p-4 space-y-3 shadow-sm relative">
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">bar_chart</span>
+<span class="font-headline-small text-headline-small text-on-surface">Weekly Intake Trend</span>
+</div>
+<span class="font-label-caption text-label-caption text-outline">Target: 90 oz</span>
+</div>
+<!-- Chart Graphic Container -->
+<div class="relative h-44 w-full pt-6 pb-2 flex flex-col justify-end">
+<!-- Dashed Target Goal Line -->
+<div class="absolute w-full top-10 flex items-center z-10 pointer-events-none">
+<div class="w-full border-b border-dashed border-primary/40"></div>
+<span class="absolute right-0 -top-2.5 bg-surface-container-high/90 font-label-caption text-[10px] text-primary px-1 rounded">90 oz</span>
+</div>
+<!-- The 7 Bars -->
+<div class="grid grid-cols-7 gap-2 h-full items-end z-20">
+<!-- Mon: 95 oz -->
+<div class="flex flex-col items-center h-full justify-end group cursor-pointer">
+<span class="font-label-caption text-[10px] text-on-surface-variant pb-1 opacity-80 group-hover:opacity-100">95</span>
+<div class="w-full max-w-[28px] h-[85%] rounded-t-xl bg-gradient-to-t from-secondary to-secondary-fixed transition-all hover:brightness-105"></div>
+<span class="font-label-caption text-label-caption text-on-surface-variant pt-1.5">M</span>
+</div>
+<!-- Tue: 92 oz -->
+<div class="flex flex-col items-center h-full justify-end group cursor-pointer">
+<span class="font-label-caption text-[10px] text-on-surface-variant pb-1 opacity-80 group-hover:opacity-100">92</span>
+<div class="w-full max-w-[28px] h-[82%] rounded-t-xl bg-gradient-to-t from-secondary to-secondary-fixed transition-all hover:brightness-105"></div>
+<span class="font-label-caption text-label-caption text-on-surface-variant pt-1.5">T</span>
+</div>
+<!-- Wed: 74 oz (missed goal) -->
+<div class="flex flex-col items-center h-full justify-end group cursor-pointer">
+<span class="font-label-caption text-[10px] text-outline pb-1 opacity-80 group-hover:opacity-100">74</span>
+<div class="w-full max-w-[28px] h-[65%] rounded-t-xl bg-gradient-to-t from-tertiary/40 to-tertiary-fixed transition-all hover:brightness-105"></div>
+<span class="font-label-caption text-label-caption text-on-surface-variant pt-1.5">W</span>
+</div>
+<!-- Thu: 90 oz (exact goal) -->
+<div class="flex flex-col items-center h-full justify-end group cursor-pointer">
+<span class="font-label-caption text-[10px] text-on-surface-variant pb-1 opacity-80 group-hover:opacity-100">90</span>
+<div class="w-full max-w-[28px] h-[80%] rounded-t-xl bg-gradient-to-t from-secondary to-secondary-fixed transition-all hover:brightness-105"></div>
+<span class="font-label-caption text-label-caption text-on-surface-variant pt-1.5">T</span>
+</div>
+<!-- Fri: 88 oz (Today - Active Selected State) -->
+<div class="flex flex-col items-center h-full justify-end relative cursor-pointer">
+<!-- Selected Indicator Marker -->
+<span class="absolute -top-1 px-1.5 py-0.5 rounded-full bg-primary text-on-primary font-label-caption text-[9px] font-bold shadow-md animate-bounce">Today</span>
+<span class="font-label-caption text-[10px] text-primary font-bold pb-1">88</span>
+<div class="w-full max-w-[28px] h-[78%] rounded-t-xl bg-gradient-to-t from-primary to-primary-container shadow-[0_0_14px_rgba(0,112,235,0.45)] ring-2 ring-primary-fixed"></div>
+<span class="font-label-caption text-label-caption text-primary font-bold pt-1.5">F</span>
+</div>
+<!-- Sat: Forecast / Future -->
+<div class="flex flex-col items-center h-full justify-end group opacity-55">
+<span class="font-label-caption text-[10px] text-outline pb-1">--</span>
+<div class="w-full max-w-[28px] h-[25%] rounded-t-xl bg-surface-container-highest border border-dashed border-outline-variant"></div>
+<span class="font-label-caption text-label-caption text-outline pt-1.5">S</span>
+</div>
+<!-- Sun: Forecast / Future -->
+<div class="flex flex-col items-center h-full justify-end group opacity-55">
+<span class="font-label-caption text-[10px] text-outline pb-1">--</span>
+<div class="w-full max-w-[28px] h-[20%] rounded-t-xl bg-surface-container-highest border border-dashed border-outline-variant"></div>
+<span class="font-label-caption text-label-caption text-outline pt-1.5">S</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Day Detail Card: Friday Breakdown -->
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-surface-variant/40 space-y-3">
+<div class="flex items-center justify-between border-b border-surface-variant/50 pb-2.5">
+<div class="flex items-center space-x-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-primary-fixed"></span>
+<h3 class="font-headline-small text-headline-small text-on-surface">Friday, Oct 24 Breakdown</h3>
+</div>
+<div class="text-right">
+<span class="font-body-bold text-body-bold text-primary">88 / 90 oz</span>
+<span class="font-label-caption text-label-caption text-secondary font-bold ml-1">(98%)</span>
+</div>
+</div>
+<!-- Timeline of Sips -->
+<div class="space-y-3 pt-1">
+<!-- Item 1 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-xl bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">sunny</span>
+</div>
+<div>
+<div class="font-body-bold text-label-subheadline text-on-surface">Morning Boost</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant">8:00 AM • Cold Water</div>
+</div>
+</div>
+<span class="font-body-bold text-body-bold text-on-surface">+16 oz</span>
+</div>
+<!-- Inset Divider -->
+<div class="ml-11 h-[0.5px] bg-surface-variant/70"></div>
+<!-- Item 2 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-xl bg-secondary-fixed/50 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">water_bottle</span>
+</div>
+<div>
+<div class="font-body-bold text-label-subheadline text-on-surface">Mid-morning Water</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant">11:30 AM • Filtered Still</div>
+</div>
+</div>
+<span class="font-body-bold text-body-bold text-on-surface">+12 oz</span>
+</div>
+<!-- Inset Divider -->
+<div class="ml-11 h-[0.5px] bg-surface-variant/70"></div>
+<!-- Item 3 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-xl bg-primary-fixed-dim/40 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">fitness_center</span>
+</div>
+<div>
+<div class="font-body-bold text-label-subheadline text-on-surface">Workout Hydro Flask</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant">2:15 PM • Electrolytes</div>
+</div>
+</div>
+<span class="font-body-bold text-body-bold text-on-surface">+24 oz</span>
+</div>
+<!-- Inset Divider -->
+<div class="ml-11 h-[0.5px] bg-surface-variant/70"></div>
+<!-- Item 4 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-xl bg-secondary-container/40 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">local_cafe</span>
+</div>
+<div>
+<div class="font-body-bold text-label-subheadline text-on-surface">Green Tea &amp; Water</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant">5:00 PM • Infusion</div>
+</div>
+</div>
+<span class="font-body-bold text-body-bold text-on-surface">+20 oz</span>
+</div>
+<!-- Inset Divider -->
+<div class="ml-11 h-[0.5px] bg-surface-variant/70"></div>
+<!-- Item 5 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[18px]">restaurant</span>
+</div>
+<div>
+<div class="font-body-bold text-label-subheadline text-on-surface">Dinner hydration</div>
+<div class="font-label-caption text-label-caption text-on-surface-variant">7:45 PM • Mineral Water</div>
+</div>
+</div>
+<span class="font-body-bold text-body-bold text-on-surface">+16 oz</span>
+</div>
+</div>
+</div>
+<!-- Monthly Calendar Mini-View Teaser -->
+<div class="glass-card rounded-2xl p-4 shadow-sm space-y-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">calendar_month</span>
+<span class="font-headline-small text-headline-small text-on-surface">October Consistency</span>
+</div>
+<span class="font-label-caption text-label-caption text-primary font-bold flex items-center">
+            24 / 31 days
+            <span class="material-symbols-outlined text-[16px] ml-0.5">chevron_right</span>
+</span>
+</div>
+<p class="font-label-caption text-label-caption text-on-surface-variant">Heat-map indicator across daily hydration goals</p>
+<!-- Mini Calendar Grid -->
+<div class="grid grid-cols-7 gap-2 pt-1 text-center">
+<!-- Mon-Sun headers -->
+<span class="font-label-caption text-[10px] text-outline">M</span>
+<span class="font-label-caption text-[10px] text-outline">T</span>
+<span class="font-label-caption text-[10px] text-outline">W</span>
+<span class="font-label-caption text-[10px] text-outline">T</span>
+<span class="font-label-caption text-[10px] text-outline">F</span>
+<span class="font-label-caption text-[10px] text-outline">S</span>
+<span class="font-label-caption text-[10px] text-outline">S</span>
+<!-- Heatmap Sample Row 1 -->
+<div class="h-6 w-full rounded-md bg-secondary-fixed flex items-center justify-center font-label-caption text-[10px] font-bold text-on-secondary-fixed">13</div>
+<div class="h-6 w-full rounded-md bg-secondary-fixed flex items-center justify-center font-label-caption text-[10px] font-bold text-on-secondary-fixed">14</div>
+<div class="h-6 w-full rounded-md bg-secondary-fixed flex items-center justify-center font-label-caption text-[10px] font-bold text-on-secondary-fixed">15</div>
+<div class="h-6 w-full rounded-md bg-tertiary-fixed-dim flex items-center justify-center font-label-caption text-[10px] font-bold text-on-tertiary-fixed">16</div>
+<div class="h-6 w-full rounded-md bg-secondary-fixed flex items-center justify-center font-label-caption text-[10px] font-bold text-on-secondary-fixed">17</div>
+<div class="h-6 w-full rounded-md bg-secondary-fixed flex items-center justify-center font-label-caption text-[10px] font-bold text-on-secondary-fixed">18</div>
+<div class="h-6 w-full rounded-md bg-secondary-fixed flex items-center justify-center font-label-caption text-[10px] font-bold text-on-secondary-fixed">19</div>
+<!-- Heatmap Sample Row 2 (Current Week) -->
+<div class="h-6 w-full rounded-md bg-secondary-fixed flex items-center justify-center font-label-caption text-[10px] font-bold text-on-secondary-fixed">20</div>
+<div class="h-6 w-full rounded-md bg-secondary-fixed flex items-center justify-center font-label-caption text-[10px] font-bold text-on-secondary-fixed">21</div>
+<div class="h-6 w-full rounded-md bg-tertiary-fixed-dim flex items-center justify-center font-label-caption text-[10px] font-bold text-on-tertiary-fixed">22</div>
+<div class="h-6 w-full rounded-md bg-secondary-fixed flex items-center justify-center font-label-caption text-[10px] font-bold text-on-secondary-fixed">23</div>
+<!-- Today: highlighted -->
+<div class="h-6 w-full rounded-md bg-primary-container text-on-primary-container ring-2 ring-primary flex items-center justify-center font-label-caption text-[10px] font-bold">24</div>
+<div class="h-6 w-full rounded-md bg-surface-container-high border border-dashed border-outline-variant flex items-center justify-center font-label-caption text-[10px] text-outline">25</div>
+<div class="h-6 w-full rounded-md bg-surface-container-high border border-dashed border-outline-variant flex items-center justify-center font-label-caption text-[10px] text-outline">26</div>
+</div>
+<!-- Mini Legend -->
+<div class="flex items-center justify-end space-x-3 pt-1 text-[11px] font-label-caption text-outline">
+<div class="flex items-center space-x-1">
+<span class="w-2 h-2 rounded bg-tertiary-fixed-dim"></span>
+<span>&lt;80%</span>
+</div>
+<div class="flex items-center space-x-1">
+<span class="w-2 h-2 rounded bg-secondary-fixed"></span>
+<span>100%+ Met</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (from Shared Components JSON: Active = Analytics) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin pb-6 pt-2 bg-surface/90 dark:bg-inverse-surface/90 backdrop-blur-xl shadow-sm dark:shadow-none select-none">
+<!-- Tab 1: Today (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[24px]">water_drop</span>
+<span class="font-label-caption text-label-caption mt-0.5">Today</span>
+</a>
+<!-- Tab 2: Add (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[24px]">add_circle</span>
+<span class="font-label-caption text-label-caption mt-0.5">Add</span>
+</a>
+<!-- Tab 3: Analytics (ACTIVE DESTINATION) -->
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed font-bold hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[24px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="font-label-caption text-label-caption mt-0.5 font-bold">Analytics</span>
+</a>
+<!-- Tab 4: History (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[24px]">history</span>
+<span class="font-label-caption text-label-caption mt-0.5">History</span>
+</a>
+<!-- Tab 5: Settings (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="font-label-caption text-label-caption mt-0.5">Settings</span>
+</a>
+</nav>
+<!-- iOS Home Indicator Pill -->
+<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-on-surface/25 rounded-full z-50 pointer-events-none"></div>
+</div>
+</body></html>

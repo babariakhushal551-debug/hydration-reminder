@@ -36,10 +36,18 @@ jobs:
           xcodebuild test \
             -project HydroFlow.xcodeproj \
             -scheme HydroFlow \
-            -destination 'platform=iOS Simulator,OS=latest' \
-            -skipPackagePluginValidation \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             CODE_SIGNING_ALLOWED=NO \
-            2>&1 | xcpretty && exit ${PIPESTATUS[0]} ; echo "xcodebuild exited non-zero" && exit 1
+            2>&1 | tee test-output.log
+          exit ${PIPESTATUS[0]}
+
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: HydroFlow/Project/test-output.log
+          retention-days: 7
 
   ipa:
     # Builds an unsigned IPA for sideloading (see README: Sideloadly section).

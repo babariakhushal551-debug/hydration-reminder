@@ -19,7 +19,6 @@ struct LogDrinkSheet: View {
                 VStack(spacing: 16) {
                     volumeCard
                     beverageSection
-                    infoNote
                 }
                 .padding(.horizontal, .margin)
                 .padding(.bottom, 110)
@@ -67,7 +66,7 @@ struct LogDrinkSheet: View {
                         Image(systemName: "drop.fill")
                             .font(.system(size: 11))
                         Text("Real-time Fluid")
-                            .font(FlowFont.caption)
+                            .font(FlowFont.caption())
                     }
                     .foregroundStyle(Theme.brandPrimary)
                 }
@@ -83,11 +82,11 @@ struct LogDrinkSheet: View {
                                 .monospacedDigit()
                                 .contentTransition(.numericText())
                             Text(unit.symbol)
-                                .font(FlowFont.headlineSmall)
+                                .font(FlowFont.headlineSmall())
                                 .foregroundStyle(Theme.labelSecondary)
                         }
                         Text(mlCaption)
-                            .font(FlowFont.caption)
+                            .font(FlowFont.caption())
                             .fontWeight(.semibold)
                             .foregroundStyle(Theme.brandPrimary)
                             .padding(.horizontal, 8)
@@ -121,7 +120,7 @@ struct LogDrinkSheet: View {
                                 }
                             } label: {
                                 Text("\(display) \(unit.symbol)")
-                                    .font(FlowFont.subhead)
+                                    .font(FlowFont.subhead())
                                     .fontWeight(volumeML == preset ? .bold : .medium)
                                     .foregroundStyle(volumeML == preset ? .white : Theme.labelSecondary)
                                     .padding(.horizontal, 13)
@@ -155,7 +154,7 @@ struct LogDrinkSheet: View {
                     .foregroundStyle(Theme.labelSecondary)
                 Spacer()
                 Text("Hydration Index")
-                    .font(FlowFont.caption)
+                    .font(FlowFont.caption())
                     .foregroundStyle(Theme.brandPrimary)
             }
             .padding(.horizontal, 4)
@@ -193,11 +192,11 @@ struct LogDrinkSheet: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(beverage.displayName)
-                    .font(FlowFont.bodyBold)
+                    .font(FlowFont.bodyBold())
                     .foregroundStyle(Theme.labelPrimary)
                 HStack(spacing: 6) {
                     Text("\(Int(beverage.hydrationFactor * 100))% hydration")
-                        .font(FlowFont.caption)
+                        .font(FlowFont.caption())
                         .fontWeight(.semibold)
                         .foregroundStyle(color(for: beverage.tint))
                         .padding(.horizontal, 6)
@@ -205,11 +204,11 @@ struct LogDrinkSheet: View {
                         .background(RoundedRectangle(cornerRadius: 4).fill(color(for: beverage.tint).opacity(0.10)))
                     if beverage == .custom {
                         Text("Manual oz & factor")
-                            .font(FlowFont.caption)
+                            .font(FlowFont.caption())
                             .foregroundStyle(Theme.labelTertiary)
                     } else {
                         Text("\(beverage.presetText(unit: unit)) preset")
-                            .font(FlowFont.caption)
+                            .font(FlowFont.caption())
                             .foregroundStyle(Theme.labelTertiary)
                     }
                 }
@@ -243,7 +242,7 @@ struct LogDrinkSheet: View {
                     Image(systemName: justLogged ? "checkmark" : "drop.fill")
                         .font(.system(size: 17, weight: .bold))
                     Text(justLogged ? "Logged!" : "Log \(volumeButtonText)")
-                        .font(FlowFont.headlineSmall)
+                        .font(FlowFont.headlineSmall())
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
@@ -289,10 +288,24 @@ struct LogDrinkSheet: View {
 
     private func changeVolume(by deltaML: Double) {
         Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
-        let clamped = min(max(volumeML + delta, 30), 2000)
+        let clamped = min(max(volumeML + deltaML, 30), 2000)
         withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
             volumeML = clamped
         }
+    }
+
+    /// Circular −/+ stepper button flanking the gauge.
+    private func stepperButton(systemName: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(Theme.azure)
+                .frame(width: 40, height: 40)
+                .background(Circle().fill(.ultraThinMaterial))
+                .overlay(Circle().strokeBorder(Theme.azure.opacity(0.25), lineWidth: 0.5))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func log() {

@@ -31,7 +31,7 @@ struct AnalyticsView: View {
         HStack {
             Spacer()
             Text(weekRangeText)
-                .font(FlowFont.caption)
+                .font(FlowFont.caption())
                 .foregroundStyle(Theme.labelTertiary)
         }
         .padding(.horizontal, 4)
@@ -52,17 +52,17 @@ struct AnalyticsView: View {
                         .tracking(0.6)
                         .foregroundStyle(Theme.brandPrimary)
                     Text("\(daysMet) / 7 Days Goal Met")
-                        .font(FlowFont.headline)
+                        .font(FlowFont.headline())
                     HStack(spacing: 8) {
                         Text("Daily Avg:")
-                            .font(FlowFont.subhead)
+                            .font(FlowFont.subhead())
                             .foregroundStyle(Theme.labelSecondary)
                         Text("\(Int(unit.value(fromML: avg).rounded())) \(unit.symbol)")
-                            .font(FlowFont.bodyBold)
+                            .font(FlowFont.bodyBold())
                             .foregroundStyle(Theme.brandPrimary)
                         if let change {
                             Text(String(format: "%+.0f%% vs lw", change))
-                                .font(FlowFont.caption)
+                                .font(FlowFont.caption())
                                 .fontWeight(.bold)
                                 .foregroundStyle(change >= 0 ? Theme.success : Theme.destructive)
                                 .padding(.horizontal, 7)
@@ -98,11 +98,11 @@ struct AnalyticsView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(Theme.azure)
                         Text("Weekly Intake Trend")
-                            .font(FlowFont.headlineSmall)
+                            .font(FlowFont.headlineSmall())
                     }
                     Spacer()
                     Text("Target: \(Int(unit.value(fromML: store.dailyGoalML).rounded())) \(unit.symbol)")
-                        .font(FlowFont.caption)
+                        .font(FlowFont.caption())
                         .foregroundStyle(Theme.labelTertiary)
                 }
 
@@ -132,15 +132,15 @@ struct AnalyticsView: View {
                             .frame(width: 10, height: 10)
                             .background(Circle().strokeBorder(Theme.azure.opacity(0.25), lineWidth: 4))
                         Text("\(day, formatter: Self.dayFormatter) Breakdown")
-                            .font(FlowFont.headlineSmall)
+                            .font(FlowFont.headlineSmall())
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 1) {
                         Text("\(Int(unit.value(fromML: total).rounded())) / \(Int(unit.value(fromML: store.dailyGoalML).rounded())) \(unit.symbol)")
-                            .font(FlowFont.bodyBold)
+                            .font(FlowFont.bodyBold())
                             .foregroundStyle(Theme.brandPrimary)
                         Text(percentText(total))
-                            .font(FlowFont.caption)
+                            .font(FlowFont.caption())
                             .fontWeight(.bold)
                             .foregroundStyle(Theme.success)
                     }
@@ -148,7 +148,7 @@ struct AnalyticsView: View {
 
                 if dayEntries.isEmpty {
                     Text("No entries for this day.")
-                        .font(FlowFont.subhead)
+                        .font(FlowFont.subhead())
                         .foregroundStyle(Theme.labelTertiary)
                         .padding(.vertical, 10)
                 } else {
@@ -180,12 +180,12 @@ struct AnalyticsView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(Theme.aqua)
                         Text("\(Self.monthFormatter.string(from: Date())) Consistency")
-                            .font(FlowFont.headlineSmall)
+                            .font(FlowFont.headlineSmall())
                     }
                     Spacer()
                     HStack(spacing: 2) {
                         Text("\(metDays) / \(heatmap.count) days")
-                            .font(FlowFont.caption)
+                            .font(FlowFont.caption())
                             .fontWeight(.bold)
                             .foregroundStyle(Theme.brandPrimary)
                         Image(systemName: "chevron.right")
@@ -194,7 +194,7 @@ struct AnalyticsView: View {
                 }
 
                 Text("Heat-map indicator across daily hydration goals")
-                    .font(FlowFont.caption)
+                    .font(FlowFont.caption())
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .foregroundStyle(Theme.labelSecondary)
 
@@ -208,7 +208,7 @@ struct AnalyticsView: View {
                     legendSwatch(color: Theme.aqua.opacity(0.75), label: "80–99%")
                     legendSwatch(color: Theme.aqua, label: "100%+ Met")
                 }
-                .font(FlowFont.caption)
+                .font(FlowFont.caption())
                 .foregroundStyle(Theme.labelTertiary)
             }
         }
@@ -370,7 +370,7 @@ private struct DayBar: View {
             .frame(height: maxHeight)
 
             Text(weekdayLetter)
-                .font(FlowFont.caption)
+                .font(FlowFont.caption())
                 .fontWeight(isToday ? .bold : .medium)
                 .foregroundStyle(isToday ? Theme.brandPrimary : Theme.labelSecondary)
         }
@@ -415,17 +415,17 @@ struct TimelineEntryRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(periodName)
-                    .font(FlowFont.subhead)
+                    .font(FlowFont.subhead())
                     .fontWeight(.semibold)
                 Text("\(entry.date, formatter: Self.timeFormatter) • \(entry.containerName ?? entry.beverage.displayName)")
-                    .font(FlowFont.caption)
+                    .font(FlowFont.caption())
                     .foregroundStyle(Theme.labelSecondary)
             }
 
             Spacer()
 
             Text("+\(Int(unit.value(fromML: entry.volumeML).rounded())) \(unit.symbol)")
-                .font(FlowFont.bodyBold)
+                .font(FlowFont.bodyBold())
         }
         .padding(.vertical, 5)
     }

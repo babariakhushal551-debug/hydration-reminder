@@ -43,7 +43,7 @@ final class NotificationScheduler: ObservableObject {
 
         var slot: Double = 0
         while true {
-            let totalMinutes = Int((settings.activeStartHour * 60 + slot * 60).rounded())
+            let totalMinutes = Int((Double(settings.activeStartHour) * 60 + slot * 60).rounded())
             let hour = totalMinutes / 60
             guard hour < settings.activeEndHour else { break }
             times.append((hour: hour, minute: totalMinutes % 60))

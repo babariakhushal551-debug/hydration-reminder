@@ -56,14 +56,14 @@ struct SettingsView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Next Drink Alert")
-                    .font(FlowFont.bodyBold)
+                    .font(FlowFont.bodyBold())
                 Text(nextAlertText)
-                    .font(FlowFont.caption)
+                    .font(FlowFont.caption())
                     .foregroundStyle(Theme.labelSecondary)
             }
             Spacer()
             Text(bannerBadge)
-                .font(FlowFont.caption)
+                .font(FlowFont.caption())
                 .fontWeight(.bold)
                 .foregroundStyle(Theme.brandPrimary)
                 .padding(.horizontal, 10)
@@ -117,7 +117,7 @@ struct SettingsView: View {
                     title: "Reminder Interval"
                 ) {
                     Text(store.reminderSettings.interval.displayName)
-                        .font(FlowFont.subhead)
+                        .font(FlowFont.subhead())
                         .fontWeight(.semibold)
                         .foregroundStyle(Theme.brandPrimary)
                 }
@@ -130,7 +130,7 @@ struct SettingsView: View {
                     title: "Active Hours"
                 ) {
                     Text(activeHoursText)
-                        .font(FlowFont.subhead)
+                        .font(FlowFont.subhead())
                         .foregroundStyle(Theme.labelSecondary)
                 }
                 .contentShape(Rectangle())
@@ -167,7 +167,7 @@ struct SettingsView: View {
                     title: "Notification Sound"
                 ) {
                     Text("Gentle Ripple")
-                        .font(FlowFont.subhead)
+                        .font(FlowFont.subhead())
                         .fontWeight(.semibold)
                         .foregroundStyle(Theme.brandPrimary)
                 }
@@ -196,7 +196,7 @@ struct SettingsView: View {
                     subtitle: "Tap to recalculate metabolic baseline"
                 ) {
                     Text("\(Int(store.profile.unit.value(fromML: store.dailyGoalML).rounded())) \(store.profile.unit.symbol)")
-                        .font(FlowFont.headlineSmall)
+                        .font(FlowFont.headlineSmall())
                         .foregroundStyle(Theme.brandPrimary)
                 }
                 .contentShape(Rectangle())
@@ -211,7 +211,7 @@ struct SettingsView: View {
                     HStack(spacing: 6) {
                         Circle().fill(Theme.success).frame(width: 8, height: 8)
                         Text(healthStatusText)
-                            .font(FlowFont.subhead)
+                            .font(FlowFont.subhead())
                             .fontWeight(.semibold)
                             .foregroundStyle(Theme.success)
                     }
@@ -251,7 +251,7 @@ struct SettingsView: View {
                 confirmReset = true
             } label: {
                 Text("Reset Hydration History")
-                    .font(FlowFont.bodyBold)
+                    .font(FlowFont.bodyBold())
                     .foregroundStyle(Theme.destructive)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
@@ -263,7 +263,7 @@ struct SettingsView: View {
                 Text("HydroFlow v1.0 (Build 1)")
                 Text("Designed with Apple HealthKit Integration")
             }
-            .font(FlowFont.caption)
+            .font(FlowFont.caption())
             .foregroundStyle(Theme.labelTertiary)
         }
     }
@@ -278,27 +278,7 @@ struct SettingsView: View {
     private var intervalPicker: some View {
         VStack(spacing: 0) {
             ForEach(ReminderInterval.allCases) { interval in
-                Button {
-                    store.reminderSettings.interval = interval
-                    rescheduleNotifications()
-                    showIntervalPicker = false
-                } label: {
-                    HStack {
-                        Text(interval.displayName)
-                            .font(FlowFont.bodyBold)
-                            .foregroundStyle(Theme.labelPrimary)
-                        Spacer()
-                        if store.reminderSettings.interval == interval {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(Theme.azure)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 14)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+                intervalRow(interval)
                 Divider().padding(.leading, 20)
             }
         }
@@ -306,33 +286,61 @@ struct SettingsView: View {
         .background(Theme.card)
     }
 
+    private func intervalRow(_ interval: ReminderInterval) -> some View {
+        Button {
+            store.reminderSettings.interval = interval
+            rescheduleNotifications()
+            showIntervalPicker = false
+        } label: {
+            HStack {
+                Text(interval.displayName)
+                    .font(FlowFont.bodyBold())
+                    .foregroundStyle(Theme.labelPrimary)
+                Spacer()
+                if store.reminderSettings.interval == interval {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Theme.azure)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
     private var activeHoursPicker: some View {
         VStack(spacing: 16) {
             Text("Active Hours")
-                .font(FlowFont.headline)
+                .font(FlowFont.headline())
             HStack(spacing: 16) {
                 hourPicker(title: "From", selection: $store.reminderSettings.activeStartHour)
                 Image(systemName: "arrow.right")
                     .foregroundStyle(Theme.labelTertiary)
                 hourPicker(title: "To", selection: $store.reminderSettings.activeEndHour)
             }
-            Button {
-                rescheduleNotifications()
-                showActiveHoursPicker = false
-            } label: {
-                Text("Save")
-                    .font(FlowFont.headlineSmall)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(Capsule().fill(Theme.flowGradient))
-            }
-            .buttonStyle(.plain)
-            .padding(.horizontal, 20)
+            saveHoursButton
         }
         .padding(.top, 24)
         .presentationDetents([.height(280)])
         .background(Theme.card)
+    }
+
+    private var saveHoursButton: some View {
+        Button {
+            rescheduleNotifications()
+            showActiveHoursPicker = false
+        } label: {
+            Text("Save")
+                .font(FlowFont.headlineSmall())
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(Capsule().fill(Theme.flowGradient))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 20)
     }
 
     private func hourPicker(title: String, selection: Binding<Int>) -> some View {
@@ -384,9 +392,9 @@ struct GoalEditorSheet: View {
         VStack(spacing: 20) {
             VStack(spacing: 4) {
                 Text("Daily Goal")
-                    .font(FlowFont.headline)
+                    .font(FlowFont.headline())
                 Text("Recalculated from your profile: \(Int(store.profile.unit.value(fromML: GoalCalculator.dailyGoalML(profile: store.profile)).rounded())) \(store.profile.unit.symbol)")
-                    .font(FlowFont.subhead)
+                    .font(FlowFont.subhead())
                     .foregroundStyle(Theme.labelSecondary)
                     .multilineTextAlignment(.center)
             }
@@ -397,7 +405,7 @@ struct GoalEditorSheet: View {
                 dismiss()
             } label: {
                 Label("Use Profile Recommendation", systemImage: "arrow.clockwise")
-                    .font(FlowFont.headlineSmall)
+                    .font(FlowFont.headlineSmall())
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
@@ -407,7 +415,7 @@ struct GoalEditorSheet: View {
             .padding(.horizontal, 20)
 
             Button("Cancel") { dismiss() }
-                .font(FlowFont.bodyBold)
+                .font(FlowFont.bodyBold())
                 .foregroundStyle(Theme.brandPrimary)
                 .padding(.bottom, 20)
         }
@@ -432,44 +440,11 @@ struct ProfileEditorSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Name") {
-                    TextField("Your Name", text: $draft.name)
-                }
-                Section("Body Weight") {
-                    Stepper("\(Int(draft.weightKg)) kg", value: $draft.weightKg, in: 35...200, step: 1)
-                }
-                Section("Biological Sex") {
-                    Picker("Sex", selection: $draft.sex) {
-                        ForEach(BiologicalSex.allCases) { sex in
-                            Text(sex.displayName).tag(sex)
-                        }
-                    }
-                    Toggle("Pregnant", isOn: $draft.isPregnant)
-                    Toggle("Breastfeeding", isOn: $draft.isBreastfeeding)
-                }
-                Section("Lifestyle") {
-                    Picker("Activity", selection: $draft.activity) {
-                        ForEach(ActivityLevel.allCases) { level in
-                            Text(level.displayName).tag(level)
-                        }
-                    }
-                    Picker("Climate", selection: $draft.climate) {
-                        ForEach(Climate.allCases) { climate in
-                            Text(climate.displayName).tag(climate)
-                        }
-                    }
-                    Picker("Units", selection: $draft.unit) {
-                        ForEach(VolumeUnit.allCases) { unit in
-                            Text(unit.displayName).tag(unit)
-                        }
-                    }
-                }
-                Section {
-                    let goal = GoalCalculator.dailyGoalML(profile: draft)
-                    Text("Estimated goal: \(Int(VolumeUnit.fluidOunces.value(fromML: goal).rounded())) fl oz (\(Int(goal)) ml)")
-                        .font(FlowFont.subhead)
-                        .foregroundStyle(Theme.brandPrimary)
-                }
+                nameSection
+                weightSection
+                sexSection
+                lifestyleSection
+                goalPreviewSection
             }
             .navigationTitle("Profile & Units")
             .navigationBarTitleDisplayMode(.inline)
@@ -488,6 +463,59 @@ struct ProfileEditorSheet: View {
             .onAppear {
                 draft = store.profile
             }
+        }
+    }
+
+    private var nameSection: some View {
+        Section("Name") {
+            TextField("Your Name", text: $draft.name)
+        }
+    }
+
+    private var weightSection: some View {
+        Section("Body Weight") {
+            Stepper("\(Int(draft.weightKg)) kg", value: $draft.weightKg, in: 35...200, step: 1)
+        }
+    }
+
+    private var sexSection: some View {
+        Section("Biological Sex") {
+            Picker("Sex", selection: $draft.sex) {
+                ForEach(BiologicalSex.allCases) { sex in
+                    Text(sex.displayName).tag(sex)
+                }
+            }
+            Toggle("Pregnant", isOn: $draft.isPregnant)
+            Toggle("Breastfeeding", isOn: $draft.isBreastfeeding)
+        }
+    }
+
+    private var lifestyleSection: some View {
+        Section("Lifestyle") {
+            Picker("Activity", selection: $draft.activity) {
+                ForEach(ActivityLevel.allCases) { level in
+                    Text(level.displayName).tag(level)
+                }
+            }
+            Picker("Climate", selection: $draft.climate) {
+                ForEach(Climate.allCases) { climate in
+                    Text(climate.displayName).tag(climate)
+                }
+            }
+            Picker("Units", selection: $draft.unit) {
+                ForEach(VolumeUnit.allCases) { unit in
+                    Text(unit.displayName).tag(unit)
+                }
+            }
+        }
+    }
+
+    private var goalPreviewSection: some View {
+        Section {
+            let goal = GoalCalculator.dailyGoalML(profile: draft)
+            Text("Estimated goal: \(Int(VolumeUnit.fluidOunces.value(fromML: goal).rounded())) fl oz (\(Int(goal)) ml)")
+                .font(FlowFont.subhead())
+                .foregroundStyle(Theme.brandPrimary)
         }
     }
 }

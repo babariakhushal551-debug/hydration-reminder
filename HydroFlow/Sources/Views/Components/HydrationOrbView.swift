@@ -119,7 +119,7 @@ struct HydrationOrbView: View {
 
                     HStack(spacing: 6) {
                         Text("Goal: \(unit.value(fromML: goalML), specifier: "%.0f") \(unit.symbol)")
-                            .font(FlowFont.subhead)
+                            .font(FlowFont.subhead())
                             .fontWeight(.semibold)
                         Text("\(Int((progress * 100).rounded()))%")
                             .font(FlowFont.caption(12))
@@ -147,7 +147,7 @@ struct HydrationOrbView: View {
 /// `phase` animates two overlapping sine waves moving in opposite directions.
 struct LiquidShape: Shape {
     let phase: Double
-    let progress: Double
+    var progress: Double
 
     func path(in rect: CGRect) -> Path {
         var p = Path()

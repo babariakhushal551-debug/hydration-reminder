@@ -116,6 +116,7 @@ enum BeverageType: String, Codable, CaseIterable, Identifiable {
         case .milk: "carton.fill"
         case .soda: "takeoutbag.and.cup.and.straw.fill"
         case .energyDrink: "flame.fill"
+        case .alcohol: "wineglass.fill"
         case .custom: "testtube.2"
         }
     }

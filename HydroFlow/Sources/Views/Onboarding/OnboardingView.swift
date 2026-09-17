@@ -57,7 +57,7 @@ struct OnboardingView: View {
                         Image(systemName: "lock.fill")
                         Text("Stored locally & synced seamlessly with Apple Health")
                     }
-                    .font(FlowFont.caption)
+                    .font(FlowFont.caption())
                     .foregroundStyle(Theme.labelTertiary)
 
                     Capsule()
@@ -102,7 +102,7 @@ struct OnboardingView: View {
             HStack(spacing: 4) {
                 Image(systemName: "drop.fill")
                 Text("SETUP JOURNEY")
-                    .font(FlowFont.caption)
+                    .font(FlowFont.caption())
                     .fontWeight(.bold)
                     .tracking(0.8)
             }
@@ -112,9 +112,9 @@ struct OnboardingView: View {
             .background(Capsule().fill(Theme.azure.opacity(0.08)))
 
             Text("Welcome to HydroFlow")
-                .font(FlowFont.headlineLarge)
+                .font(FlowFont.headlineLarge())
             Text("Let's personalize your daily hydration target for optimal health & energy.")
-                .font(FlowFont.body)
+                .font(FlowFont.body())
                 .foregroundStyle(Theme.labelSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
@@ -131,7 +131,7 @@ struct OnboardingView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(Theme.labelSecondary)
                 TextField("Your Name", text: $name)
-                    .font(FlowFont.bodyBold)
+                    .font(FlowFont.bodyBold())
                     .padding(12)
                     .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.canvas))
             }
@@ -180,7 +180,7 @@ struct OnboardingView: View {
                             .font(FlowFont.stat(34))
                             .monospacedDigit()
                         Text(unit == .fluidOunces ? "lbs" : "kg")
-                            .font(FlowFont.bodyBold)
+                            .font(FlowFont.bodyBold())
                             .foregroundStyle(Theme.labelSecondary)
                     }
                     Spacer()
@@ -209,7 +209,7 @@ struct OnboardingView: View {
                             withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) { sex = s }
                         } label: {
                             Text(s.displayName)
-                                .font(FlowFont.bodyBold)
+                                .font(FlowFont.bodyBold())
                                 .foregroundStyle(sex == s ? Theme.brandPrimary : Theme.labelSecondary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
@@ -256,7 +256,7 @@ struct OnboardingView: View {
                         .foregroundStyle(Theme.labelSecondary)
                     Spacer()
                     Text(activitySubtitle)
-                        .font(FlowFont.caption)
+                        .font(FlowFont.caption())
                         .fontWeight(.bold)
                         .foregroundStyle(Theme.brandPrimary)
                 }
@@ -264,46 +264,51 @@ struct OnboardingView: View {
                 // 2×2 grid of level tiles.
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
                     ForEach(ActivityLevel.allCases) { level in
-                        Button {
-                            Feedback.tick(enabled: true)
-                            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) { activity = level }
-                        } label: {
-                            HStack(spacing: 10) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                        .fill(activity == level ? AnyShapeStyle(Theme.flowGradient) : AnyShapeStyle(Theme.azure.opacity(0.08)))
-                                    Image(systemName: level.symbolName)
-                                        .font(.system(size: 15, weight: .semibold))
-                                        .foregroundStyle(activity == level ? .white : Theme.labelSecondary)
-                                }
-                                .frame(width: 32, height: 32)
-
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(level.displayName)
-                                        .font(FlowFont.bodyBold(14))
-                                        .foregroundStyle(activity == level ? Theme.brandPrimary : Theme.labelPrimary)
-                                    Text(level.subtitle)
-                                        .font(FlowFont.caption(11))
-                                        .foregroundStyle(activity == level ? Theme.azure.opacity(0.8) : Theme.labelTertiary)
-                                }
-                                Spacer(minLength: 0)
-                            }
-                            .padding(10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(activity == level ? Theme.azure.opacity(0.07) : Theme.canvas.opacity(0.6))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .strokeBorder(activity == level ? Theme.azure : Theme.azure.opacity(0.12),
-                                                  lineWidth: activity == level ? 1.6 : 0.5)
-                            )
-                        }
-                        .buttonStyle(.plain)
+                        activityTile(level)
                     }
                 }
             }
         }
+    }
+
+    private func activityTile(_ level: ActivityLevel) -> some View {
+        let isSelected = activity == level
+        return Button {
+            Feedback.tick(enabled: true)
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) { activity = level }
+        } label: {
+            HStack(spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(isSelected ? AnyShapeStyle(Theme.flowGradient) : AnyShapeStyle(Theme.azure.opacity(0.08)))
+                    Image(systemName: level.symbolName)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(isSelected ? Color.white : Theme.labelSecondary)
+                }
+                .frame(width: 32, height: 32)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(level.displayName)
+                        .font(FlowFont.bodyBold(14))
+                        .foregroundStyle(isSelected ? Theme.brandPrimary : Theme.labelPrimary)
+                    Text(level.subtitle)
+                        .font(FlowFont.caption(11))
+                        .foregroundStyle(isSelected ? Theme.azure.opacity(0.8) : Theme.labelTertiary)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(isSelected ? Theme.azure.opacity(0.07) : Theme.canvas.opacity(0.6))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(isSelected ? Theme.azure : Theme.azure.opacity(0.12),
+                                  lineWidth: isSelected ? 1.6 : 0.5)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var climateCard: some View {
@@ -349,7 +354,7 @@ struct OnboardingView: View {
                 .font(.system(size: 18))
                 .foregroundStyle(Theme.aqua)
             Text(baselineText)
-                .font(FlowFont.subhead)
+                .font(FlowFont.subhead())
                 .fontWeight(.semibold)
         }
         .padding(.horizontal, 16)
@@ -357,8 +362,6 @@ struct OnboardingView: View {
         .background(Capsule().fill(Theme.aqua.opacity(0.12)))
         .overlay(Capsule().strokeBorder(Theme.aqua.opacity(0.3), lineWidth: 0.5))
     }
-
-    // MARK: - Helpers
 
     /// Toggleable pill used for pregnancy / breastfeeding modifiers.
     private func modifierPill(title: String, systemImage: String, isOn: Binding<Bool>) -> some View {
@@ -370,7 +373,7 @@ struct OnboardingView: View {
                 Image(systemName: isOn.wrappedValue ? "checkmark.circle.fill" : systemImage)
                     .font(.system(size: 14))
                 Text(title)
-                    .font(FlowFont.subhead)
+                    .font(FlowFont.subhead())
                     .fontWeight(isOn.wrappedValue ? .bold : .medium)
             }
             .foregroundStyle(isOn.wrappedValue ? Theme.aqua : Theme.labelSecondary)
@@ -382,6 +385,21 @@ struct OnboardingView: View {
             .overlay(
                 Capsule().strokeBorder(isOn.wrappedValue ? Theme.aqua : Theme.azure.opacity(0.15), lineWidth: 0.8)
             )
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Circular −/+ stepper button used by the weight card.
+    private func stepperCircle(_ systemName: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(Theme.azure)
+                .frame(width: 36, height: 36)
+                .background(Circle().fill(Theme.card))
+                .overlay(Circle().strokeBorder(Theme.azure.opacity(0.2), lineWidth: 0.5))
+                .shadow(color: .black.opacity(0.05), radius: 3, y: 1)
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
     }

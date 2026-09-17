@@ -70,7 +70,7 @@ struct ToastView: View {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(Theme.aqua)
             Text(text)
-                .font(FlowFont.bodyBold)
+                .font(FlowFont.bodyBold())
                 .foregroundStyle(Theme.labelPrimary)
         }
         .padding(.horizontal, 16)
@@ -89,7 +89,7 @@ struct FlowButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(FlowFont.headlineSmall)
+            .font(FlowFont.headlineSmall())
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 52)
@@ -113,7 +113,7 @@ struct SelectableChip: View {
 
     var body: some View {
         Text(title)
-            .font(FlowFont.subhead)
+            .font(FlowFont.subhead())
             .fontWeight(isSelected ? .bold : .medium)
             .foregroundStyle(isSelected ? .white : Theme.labelSecondary)
             .padding(.horizontal, 14)
@@ -142,7 +142,7 @@ struct ToggleRow: View {
             IconTile(systemName: icon, tint: iconTint, size: 32)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(FlowFont.bodyBold(16))
-                Text(subtitle).font(FlowFont.caption).foregroundStyle(Theme.labelSecondary)
+                Text(subtitle).font(FlowFont.caption()).foregroundStyle(Theme.labelSecondary)
             }
             Spacer()
             Toggle("", isOn: $isOn)
@@ -169,7 +169,7 @@ struct NavigationRow<Trailing: View>: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(FlowFont.bodyBold(16))
                 if let subtitle {
-                    Text(subtitle).font(FlowFont.caption).foregroundStyle(Theme.labelSecondary)
+                    Text(subtitle).font(FlowFont.caption()).foregroundStyle(Theme.labelSecondary)
                 }
             }
             Spacer()

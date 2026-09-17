@@ -95,7 +95,7 @@ struct TodayView: View {
                 HStack(spacing: 6) {
                     Text("💧")
                     Text(feedbackLine)
-                        .font(FlowFont.caption)
+                        .font(FlowFont.caption())
                         .fontWeight(.semibold)
                         .foregroundStyle(Theme.labelSecondary)
                 }
@@ -121,16 +121,16 @@ struct TodayView: View {
                     }
                     if let last = store.lastEntry {
                         Text(last.beverage.displayName)
-                            .font(FlowFont.bodyBold)
+                            .font(FlowFont.bodyBold())
                             .lineLimit(1)
                         Text("\(last.date, formatter: Self.agoFormatter) • \(last.containerName ?? "Quick log")")
-                            .font(FlowFont.caption)
+                            .font(FlowFont.caption())
                             .foregroundStyle(Theme.labelSecondary)
                     } else {
                         Text("No drinks yet")
-                            .font(FlowFont.bodyBold)
+                            .font(FlowFont.bodyBold())
                         Text("Log your first sip!")
-                            .font(FlowFont.caption)
+                            .font(FlowFont.caption())
                             .foregroundStyle(Theme.labelSecondary)
                     }
                 }
@@ -147,9 +147,9 @@ struct TodayView: View {
                             .foregroundStyle(Theme.labelSecondary)
                     }
                     Text(remainingText)
-                        .font(FlowFont.bodyBold)
+                        .font(FlowFont.bodyBold())
                     Text(glassesText)
-                        .font(FlowFont.caption)
+                        .font(FlowFont.caption())
                         .fontWeight(.semibold)
                         .foregroundStyle(Theme.aqua)
                 }
@@ -173,7 +173,7 @@ struct TodayView: View {
                     }
                     Spacer()
                     Text("Instant Add")
-                        .font(FlowFont.caption)
+                        .font(FlowFont.caption())
                         .foregroundStyle(Theme.labelSecondary)
                 }
 
@@ -246,9 +246,9 @@ struct TodayView: View {
         VStack(spacing: 10) {
             HStack {
                 Text("Recent Sips Today")
-                    .font(FlowFont.bodyBold)
+                    .font(FlowFont.bodyBold())
                 Text("(\(store.todayEntriesNewestFirst.count) logged)")
-                    .font(FlowFont.subhead)
+                    .font(FlowFont.subhead())
                     .foregroundStyle(Theme.labelSecondary)
                 Spacer()
                 NavigationLink {
@@ -258,7 +258,7 @@ struct TodayView: View {
                         Text("View All")
                         Image(systemName: "chevron.right")
                     }
-                    .font(FlowFont.caption)
+                    .font(FlowFont.caption())
                     .fontWeight(.bold)
                     .foregroundStyle(Theme.azure)
                 }
@@ -269,7 +269,7 @@ struct TodayView: View {
             if today.isEmpty {
                 FlowCard {
                     Text("Nothing logged yet today — tap a vessel above to start! 💧")
-                        .font(FlowFont.subhead)
+                        .font(FlowFont.subhead())
                         .foregroundStyle(Theme.labelSecondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
@@ -439,7 +439,7 @@ struct EntryRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     Text(title)
-                        .font(FlowFont.bodyBold)
+                        .font(FlowFont.bodyBold())
                         .lineLimit(1)
                     Text("\(Int(entry.hydrationFactor * 100))%")
                         .font(FlowFont.caption(10))
@@ -450,14 +450,14 @@ struct EntryRow: View {
                         .background(RoundedRectangle(cornerRadius: 4).fill(Theme.azure.opacity(0.10)))
                 }
                 Text("\(entry.date, formatter: Self.timeFormatter) • \(entry.containerName ?? entry.beverage.displayName)")
-                    .font(FlowFont.caption)
+                    .font(FlowFont.caption())
                     .foregroundStyle(Theme.labelSecondary)
             }
 
             Spacer()
 
             Text("+\(Int(unit.value(fromML: entry.volumeML).rounded())) \(unit.symbol)")
-                .font(FlowFont.subhead)
+                .font(FlowFont.subhead())
                 .fontWeight(.bold)
                 .foregroundStyle(Theme.azure)
 

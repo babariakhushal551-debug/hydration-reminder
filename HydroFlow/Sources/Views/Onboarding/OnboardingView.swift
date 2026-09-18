@@ -103,7 +103,7 @@ struct OnboardingView: View {
             // App icon built in-code (gradient droplet).
             ZStack {
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(Color(red: 0.94, green: 0.98, blue: 1.0))
+                    .fill(Theme.card)
                     .frame(width: 80, height: 80)
                     .shadow(color: Theme.azure.opacity(0.25), radius: 16, y: 6)
 

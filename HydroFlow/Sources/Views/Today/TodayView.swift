@@ -475,17 +475,31 @@ struct TodayView: View {
         }
     }
 
-    /// BUG FIX: the rhythm pill used to count down even when reminders were
-    /// paused (off toggle or bedtime mode), promising nudges that never come.
-    /// Recomputed against the ticking `now` clock so it counts down live.
+    /// BUG FIX: the pill previously counted *time since the last drink*, so it
+    /// froze at "Sip time" once the interval elapsed and never matched when
+    /// notifications actually fire. It now uses the SAME slot math as the
+    /// scheduler (wall-clock slots) and counts down against the ticking clock.
     private var rhythmText: String {
         let s = store.reminderSettings
         guard s.remindersEnabled, !s.bedtimeMode else { return "Reminders paused — enable them in Settings" }
-        let intervalMinutes = s.effectiveIntervalMinutes
-        let elapsed = now.timeIntervalSince(store.lastEntry?.date ?? now) / 60
-        let remaining = max(0, intervalMinutes - elapsed)
-        if remaining <= 0.5 { return "Sip time — grab some water now 💧" }
-        return "Next recommended sip in \(Int(remaining.rounded())) mins"
+        let slots = NotificationScheduler.plannedReminderTimes(settings: s)
+            .map { $0.hour * 60 + $0.minute }
+            .sorted()
+        guard !slots.isEmpty else { return "No reminder slots in the active window" }
+
+        let cal = Calendar.current
+        let comps = cal.dateComponents([.hour, .minute], from: now)
+        let nowMinutes = (comps.hour ?? 0) * 60 + (comps.minute ?? 0)
+        // First slot still ahead today; otherwise the earliest slot tomorrow.
+        let next = slots.first(where: { $0 > nowMinutes }) ?? slots[0]
+        let delta = next > nowMinutes ? next - nowMinutes : (24 * 60 - nowMinutes) + next
+        if delta <= 1 { return "Sip time — grab some water now 💧" }
+
+        let hours = delta / 60
+        let mins = delta % 60
+        let countdown = hours > 0 ? "\(hours) h \(mins) min" : "\(mins) min"
+        let clock = String(format: "%d:%02d", next / 60, next % 60)
+        return "Next sip in \(countdown) — at \(clock)"
     }
 
     private var feedbackLine: String {
@@ -598,8 +612,12 @@ struct QuickVesselButton: View {
             VStack(spacing: 5) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.white)
-                        .shadow(color: .black.opacity(0.06), radius: 3, y: 1)
+                        .fill(Theme.card)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .strokeBorder(Theme.hairline.opacity(0.6), lineWidth: 0.5)
+                        )
+                        .shadow(color: Theme.azure.opacity(0.10), radius: 3, y: 1)
                     Image(systemName: vessel.symbol)
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(Theme.azure)

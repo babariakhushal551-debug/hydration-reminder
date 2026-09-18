@@ -233,7 +233,7 @@ struct OnboardingView: View {
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .strokeBorder(sex == s ? Color.black.opacity(0.04) : .clear, lineWidth: 0.5)
+                                        .strokeBorder(sex == s ? Theme.hairline.opacity(0.5) : .clear, lineWidth: 0.5)
                                 )
                         }
                         .buttonStyle(.plain)

@@ -11,6 +11,11 @@ struct TodayView: View {
     @State private var toast: String?
     @State private var toastTask: Task<Void, Never>?
     @State private var showGoalSheet = false
+    /// Ticks every 15 s so time-relative UI ("next sip in X min") is dynamic
+    /// instead of frozen at whatever value it had on the last render.
+    @State private var now = Date()
+
+    private static let clockTicker = Timer.publish(every: 15, on: .main, in: .common).autoconnect()
 
     var body: some View {
         // `.vertical` only — this is the fix for the whole tab drifting
@@ -30,6 +35,9 @@ struct TodayView: View {
             .frame(maxWidth: .infinity)
         }
         .background(Theme.canvas)
+        .onReceive(Self.clockTicker) { date in
+            now = date
+        }
         .overlay(alignment: .top) {
             if let toast {
                 ToastView(text: toast)
@@ -88,7 +96,7 @@ struct TodayView: View {
                     .foregroundStyle(Theme.labelPrimary)
                     .frame(width: 36, height: 36)
                     .background(Circle().fill(Theme.card))
-                    .overlay(Circle().strokeBorder(Color.black.opacity(0.05), lineWidth: 0.5))
+                    .overlay(Circle().strokeBorder(Theme.hairline.opacity(0.5), lineWidth: 0.5))
             }
             .buttonStyle(.plain)
 
@@ -104,7 +112,7 @@ struct TodayView: View {
                     .foregroundStyle(Theme.labelPrimary)
                     .frame(width: 36, height: 36)
                     .background(Circle().fill(Theme.card))
-                    .overlay(Circle().strokeBorder(Color.black.opacity(0.05), lineWidth: 0.5))
+                    .overlay(Circle().strokeBorder(Theme.hairline.opacity(0.5), lineWidth: 0.5))
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Appearance: \(store.appearance.displayName). Double tap to switch.")
@@ -123,7 +131,7 @@ struct TodayView: View {
                     .foregroundStyle(Theme.labelPrimary)
                     .frame(width: 26, height: 26)
                     .background(Circle().fill(Theme.card))
-                    .overlay(Circle().strokeBorder(Color.black.opacity(0.06), lineWidth: 0.5))
+                    .overlay(Circle().strokeBorder(Theme.hairline.opacity(0.6), lineWidth: 0.5))
             }
             .buttonStyle(.plain)
 
@@ -437,7 +445,7 @@ struct TodayView: View {
                 .background(RoundedRectangle(cornerRadius: .cardRadius, style: .continuous).fill(Theme.card))
                 .overlay(
                     RoundedRectangle(cornerRadius: .cardRadius, style: .continuous)
-                        .strokeBorder(Color.black.opacity(0.04), lineWidth: 0.5)
+                        .strokeBorder(Theme.hairline.opacity(0.5), lineWidth: 0.5)
                 )
             }
         }
@@ -469,12 +477,14 @@ struct TodayView: View {
 
     /// BUG FIX: the rhythm pill used to count down even when reminders were
     /// paused (off toggle or bedtime mode), promising nudges that never come.
+    /// Recomputed against the ticking `now` clock so it counts down live.
     private var rhythmText: String {
         let s = store.reminderSettings
         guard s.remindersEnabled, !s.bedtimeMode else { return "Reminders paused — enable them in Settings" }
         let intervalMinutes = s.effectiveIntervalMinutes
-        let elapsed = Date().timeIntervalSince(store.lastEntry?.date ?? Date()) / 60
+        let elapsed = now.timeIntervalSince(store.lastEntry?.date ?? now) / 60
         let remaining = max(0, intervalMinutes - elapsed)
+        if remaining <= 0.5 { return "Sip time — grab some water now 💧" }
         return "Next recommended sip in \(Int(remaining.rounded())) mins"
     }
 

@@ -2,35 +2,48 @@ import SwiftUI
 
 /// HydroFlow design system — colors.
 ///
-/// Translates the "HydroFlow" design language (see `stitch_ui/.../hydroflow/DESIGN.md`)
-/// into semantic color roles. The palette is a hybrid of iOS system blues and the
-/// aquatic azure→aqua gradient used for primary actions and liquid fills.
+/// Directly transcribed from the stitch design tokens
+/// (`stitch_ui/stitch_hydration_tracker_app_ui/hydroflow/DESIGN.md`):
+/// surface `#faf9fe`, white cards, outline-variant `#c1c6d7`,
+/// primary `#0058bc`, interactive `#0070eb`, gradient `#0070eb → #39dcd2`.
+/// Dark variants keep the same roles (mirrors the web preview's dark theme).
 enum Theme {
+
+    private static func dynamic(light: UIColor, dark: UIColor) -> Color {
+        Color(UIColor { $0.userInterfaceStyle == .dark ? dark : light })
+    }
 
     // MARK: - Core palette
 
-    /// iOS Azure Blue — dominant interactive tone.
-    static let azure = Color(red: 0.00, green: 0.48, blue: 1.00)          // #007AFF
+    /// Interactive azure (stitch `primary-container` #0070EB).
+    static let azure = dynamic(light: UIColor(red: 0.00, green: 0.44, blue: 0.92, alpha: 1),
+                               dark: UIColor(red: 0.25, green: 0.61, blue: 1.00, alpha: 1))
 
-    /// Refreshing Aqua Cyan — micro-achievements, completion badges.
-    static let aqua = Color(red: 0.00, green: 0.78, blue: 0.75)           // #00C7BE
+    /// Refreshing aqua (stitch secondary family).
+    static let aqua = dynamic(light: UIColor(red: 0.00, green: 0.78, blue: 0.75, alpha: 1),
+                              dark: UIColor(red: 0.22, green: 0.86, blue: 0.82, alpha: 1))
 
-    /// Deep Indigo — secondary charts, evening tags, gradient stops.
-    static let indigo = Color(red: 0.35, green: 0.34, blue: 0.84)         // #5856D6
+    /// Deep indigo (stitch tertiary #4C4ACA / #6664E4).
+    static let indigo = dynamic(light: UIColor(red: 0.30, green: 0.29, blue: 0.79, alpha: 1),
+                                dark: UIColor(red: 0.40, green: 0.39, blue: 0.89, alpha: 1))
 
-    /// Brand primary used across mockup chrome (deeper azure, #0058BC).
-    static let brandPrimary = Color(red: 0.00, green: 0.35, blue: 0.74)
+    /// Brand primary for text/badges (stitch `primary` #0058BC; lighter on dark).
+    static let brandPrimary = dynamic(light: UIColor(red: 0.00, green: 0.35, blue: 0.74, alpha: 1),
+                                      dark: UIColor(red: 0.30, green: 0.64, blue: 1.00, alpha: 1))
 
     // MARK: - Functional canvas
 
-    /// iOS grouped background canvas.
-    static let canvas = Color(UIColor.systemGroupedBackground)            // #F2F2F7
+    /// Stitch `surface` #FAF9FE light / near-black canvas dark.
+    static let canvas = dynamic(light: UIColor(red: 0.980, green: 0.976, blue: 0.996, alpha: 1),
+                                dark: UIColor(red: 0.020, green: 0.020, blue: 0.035, alpha: 1))
 
-    /// Elevated card surface (light mode white).
-    static let card = Color(UIColor.secondarySystemGroupedBackground)
+    /// Stitch `surface-container-lowest` #FFFFFF light / elevated dark surface.
+    static let card = dynamic(light: .white,
+                              dark: UIColor(red: 0.071, green: 0.071, blue: 0.094, alpha: 1))
 
-    /// Hairline dividers inside grouped lists.
-    static let hairline = Color(UIColor.separator)
+    /// Stitch `outline-variant` #C1C6D7 hairlines (inverted on dark).
+    static let hairline = dynamic(light: UIColor(red: 0.757, green: 0.776, blue: 0.843, alpha: 0.6),
+                                  dark: UIColor(white: 1.0, alpha: 0.10))
 
     // MARK: - Text hierarchy
 
@@ -49,9 +62,10 @@ enum Theme {
 
     // MARK: - Gradients
 
-    /// Signature azure→aqua gradient used by primary capsule buttons and ring strokes.
+    /// Stitch CTA gradient: #0070EB → #39DCD2 at 135°.
     static let flowGradient = LinearGradient(
-        colors: [azure, aqua],
+        colors: [Color(red: 0.00, green: 0.44, blue: 0.92),
+                 Color(red: 0.22, green: 0.86, blue: 0.82)],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
@@ -75,18 +89,19 @@ enum Theme {
     )
 }
 
-/// Typography tokens mapped from DESIGN.md (Manrope metrics → rounded design).
-/// Uses the system rounded face for the friendly, geometric HydroFlow feel.
+/// Typography tokens mapped from DESIGN.md (Manrope metrics → SF Pro).
+/// Manrope's geometry is closest to plain SF Pro — the previous `.rounded`
+/// design made every surface look toy-like and drifted from the mockups.
 enum FlowFont {
-    static func display(_ size: CGFloat = 44) -> Font { .system(size: size, weight: .heavy, design: .rounded) }
-    static func headlineLarge(_ size: CGFloat = 28) -> Font { .system(size: size, weight: .bold, design: .rounded) }
-    static func headline(_ size: CGFloat = 22) -> Font { .system(size: size, weight: .semibold, design: .rounded) }
-    static func headlineSmall(_ size: CGFloat = 17) -> Font { .system(size: size, weight: .semibold, design: .rounded) }
-    static func body(_ size: CGFloat = 15) -> Font { .system(size: size, weight: .regular, design: .rounded) }
-    static func bodyBold(_ size: CGFloat = 15) -> Font { .system(size: size, weight: .semibold, design: .rounded) }
-    static func caption(_ size: CGFloat = 11) -> Font { .system(size: size, weight: .medium, design: .rounded) }
-    static func subhead(_ size: CGFloat = 13) -> Font { .system(size: size, weight: .medium, design: .rounded) }
-    static func stat(_ size: CGFloat = 32) -> Font { .system(size: size, weight: .bold, design: .rounded) }
+    static func display(_ size: CGFloat = 44) -> Font { .system(size: size, weight: .heavy) }
+    static func headlineLarge(_ size: CGFloat = 28) -> Font { .system(size: size, weight: .bold) }
+    static func headline(_ size: CGFloat = 22) -> Font { .system(size: size, weight: .semibold) }
+    static func headlineSmall(_ size: CGFloat = 17) -> Font { .system(size: size, weight: .semibold) }
+    static func body(_ size: CGFloat = 15) -> Font { .system(size: size, weight: .regular) }
+    static func bodyBold(_ size: CGFloat = 15) -> Font { .system(size: size, weight: .semibold) }
+    static func caption(_ size: CGFloat = 11) -> Font { .system(size: size, weight: .medium) }
+    static func subhead(_ size: CGFloat = 13) -> Font { .system(size: size, weight: .medium) }
+    static func stat(_ size: CGFloat = 32) -> Font { .system(size: size, weight: .bold) }
 }
 
 // MARK: - Shared layout constants

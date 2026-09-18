@@ -14,6 +14,19 @@ final class NotificationScheduler: ObservableObject {
 
     private let center = UNUserNotificationCenter.current()
 
+    /// Foreground presentation delegate.
+    ///
+    /// BUG FIX (the last missing piece): iOS **never displays banners for local
+    /// notifications while the app is in the foreground** unless a
+    /// UNUserNotificationCenterDelegate explicitly allows it. Users testing
+    /// with the app open saw "no notifications" even though everything was
+    /// scheduled correctly. This delegate shows banner + sound + haptic.
+    private let foregroundDelegate = ForegroundPresentationDelegate()
+
+    private init() {
+        center.delegate = foregroundDelegate
+    }
+
     // MARK: - Permissions
 
     /// Request notification permission; updates `authorizationStatus`.
@@ -155,6 +168,25 @@ final class NotificationScheduler: ObservableObject {
     }
 
     // MARK: - Messages
+
+    /// Foreground banner presentation (see init).
+    final class ForegroundPresentationDelegate: NSObject, UNUserNotificationCenterDelegate {
+        func userNotificationCenter(
+            _ center: UNUserNotificationCenter,
+            willPresent notification: UNNotification,
+            withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+        ) {
+            completionHandler([.banner, .sound, .badge, .list])
+        }
+
+        func userNotificationCenter(
+            _ center: UNUserNotificationCenter,
+            didReceive response: UNNotificationResponse,
+            withCompletionHandler completionHandler: @escaping () -> Void
+        ) {
+            completionHandler()
+        }
+    }
 
     private static let messages = [
         "Keep the flow going — a glass of water keeps your energy steady.",

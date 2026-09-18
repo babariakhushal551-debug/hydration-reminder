@@ -20,6 +20,10 @@ struct SettingsView: View {
     @State private var pendingPresetDelete: ContainerPreset?
     @State private var confirmPresetsReset = false
     @State private var confirmReset = false
+    /// Ticks so the "Next Drink Alert" banner stays live instead of frozen.
+    @State private var now = Date()
+
+    private static let clockTicker = Timer.publish(every: 15, on: .main, in: .common).autoconnect()
 
     var body: some View {
         ScrollView {
@@ -38,6 +42,9 @@ struct SettingsView: View {
         }
         .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         .background(Theme.canvas)
+        .onReceive(Self.clockTicker) { date in
+            now = date
+        }
         .navigationTitle("Reminders & Preferences")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showGoalEditor) { goalEditor }
@@ -130,7 +137,8 @@ struct SettingsView: View {
         let times = NotificationScheduler.plannedReminderTimes(settings: settings)
         guard !times.isEmpty else { return "Reminders paused" }
 
-        let now = Date()
+        // `now` is the ticking @State clock — recomputed every 15 s so the
+        // banner rolls over to the next slot on its own.
         let cal = Calendar.current
         var nextDate: Date?
         for slot in times {
@@ -1345,7 +1353,7 @@ extension View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.black.opacity(0.04), lineWidth: 0.5)
+                .strokeBorder(Theme.hairline.opacity(0.5), lineWidth: 0.5)
         )
     }
 }

@@ -138,7 +138,7 @@ struct LogDrinkSheet: View {
                         }
                         VStack(spacing: 2) {
                             Text("\(Int(volumeDisplayValue.rounded()))")
-                                .font(.system(size: 30, weight: .bold, design: .rounded))
+                                .font(.system(size: 30, weight: .bold, ))
                                 .monospacedDigit()
                                 .contentTransition(.numericText())
                             Text(unit.symbol)
@@ -232,7 +232,7 @@ struct LogDrinkSheet: View {
             .background(RoundedRectangle(cornerRadius: .cardRadius, style: .continuous).fill(Theme.card))
             .overlay(
                 RoundedRectangle(cornerRadius: .cardRadius, style: .continuous)
-                    .strokeBorder(Color.black.opacity(0.04), lineWidth: 0.5)
+                    .strokeBorder(Theme.hairline.opacity(0.5), lineWidth: 0.5)
             )
         }
     }

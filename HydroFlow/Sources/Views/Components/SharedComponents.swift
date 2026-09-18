@@ -14,12 +14,16 @@ struct FlowCard<Content: View>: View {
         content
             .padding(16)
             .background(
+                // Stitch Tier-2 elevation: diffuse azure ambient glow plus a
+                // faint neutral drop (0 8px 32px rgba(0,122,255,.08)).
                 RoundedRectangle(cornerRadius: .cardRadius, style: .continuous)
                     .fill(Theme.card)
+                    .shadow(color: Theme.azure.opacity(0.08), radius: 16, x: 0, y: 8)
+                    .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: .cardRadius, style: .continuous)
-                    .strokeBorder(Color.black.opacity(0.04), lineWidth: 0.5)
+                    .strokeBorder(Theme.hairline.opacity(0.5), lineWidth: 0.5)
             )
     }
 }

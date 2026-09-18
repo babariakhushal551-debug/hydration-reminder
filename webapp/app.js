@@ -358,7 +358,7 @@ function renderToday() {
       <div class="tile" style="background:var(--azure);color:#fff">💧</div>
       <div style="flex:1">
         <div class="eyebrow">HYDRATION RHYTHM • <span style="color:var(--aqua)">Optimal</span></div>
-        <div style="font-size:12.5px;font-weight:600;margin-top:2px">Next recommended sip in ${nextSipMins()} mins</div>
+        <div style="font-size:12.5px;font-weight:600;margin-top:2px">${nextSipMins() === null ? 'Reminders paused — enable them in Settings' : nextSipMins() === 0 ? 'Sip time — grab some water now 💧' : `Next recommended sip in ${nextSipMins()} mins`}</div>
       </div>
       <span class="cap">›</span>
     </div>
@@ -443,11 +443,15 @@ function renderToday() {
     </div>`;
 }
 function nextSipMins() {
+  if (!state.reminders || state.bedtime) return null;   // paused — honest state
   const last = entriesToday().sort((a, b) => b.date - a.date)[0];
   const interval = state.customIntervalMin ?? state.intervalH * 60;
   const elapsed = last ? (Date.now() - last.date.getTime()) / 6e4 : 0;
-  return Math.max(0, Math.round(interval - elapsed));
+  const remaining = Math.round(interval - elapsed);
+  return remaining > 0 ? remaining : 0;   // 0 = "sip now"
 }
+// Re-render the Today screen every 30 s so the sip countdown ticks live.
+setInterval(() => { if (currentTab === 'today') renderToday(); }, 30000);
 function repeatLast() {
   const last = entriesToday().sort((a, b) => b.date - a.date)[0];
   if (last) logDrink(last.bev, last.ml, last.container);

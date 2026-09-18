@@ -91,6 +91,23 @@ struct TodayView: View {
                     .overlay(Circle().strokeBorder(Color.black.opacity(0.05), lineWidth: 0.5))
             }
             .buttonStyle(.plain)
+
+            // Light/Dark quick toggle (cycles System → Light → Dark).
+            Button {
+                Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    store.appearance = store.appearance.next
+                }
+            } label: {
+                Image(systemName: store.appearance.symbolName)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Theme.labelPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(Circle().fill(Theme.card))
+                    .overlay(Circle().strokeBorder(Color.black.opacity(0.05), lineWidth: 0.5))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Appearance: \(store.appearance.displayName). Double tap to switch.")
         }
     }
 

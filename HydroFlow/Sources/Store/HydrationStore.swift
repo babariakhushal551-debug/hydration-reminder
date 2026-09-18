@@ -24,6 +24,9 @@ final class HydrationStore: ObservableObject {
     /// per user request — was hardcoded at 1000 ml.
     @Published var pourBottleMaxML: Double { didSet { scheduleSave() } }
 
+    /// User-selected color scheme: system / light / dark.
+    @Published var appearance: AppearancePreference { didSet { scheduleSave() } }
+
     // MARK: - Persistence
 
     private let queue = DispatchQueue(label: "com.hydroflow.store", qos: .utility)
@@ -39,6 +42,7 @@ final class HydrationStore: ObservableObject {
         var hasCompletedOnboarding: Bool
         var containerPresets: [ContainerPreset]?
         var pourBottleMaxML: Double?
+        var appearance: AppearancePreference?
         var schemaVersion: Int = 1
     }
 
@@ -57,12 +61,14 @@ final class HydrationStore: ObservableObject {
             hasCompletedOnboarding = state.hasCompletedOnboarding
             containerPresets = state.containerPresets ?? ContainerPreset.defaults
             pourBottleMaxML = (state.pourBottleMaxML ?? 1000).clampedBottleCapacity
+            appearance = state.appearance ?? .system
         } else {
             profile = UserProfile()
             reminderSettings = ReminderSettings()
             hasCompletedOnboarding = false
             containerPresets = ContainerPreset.defaults
             pourBottleMaxML = 1000
+            appearance = .system
         }
 
         refreshWeatherBonus(now: now())
@@ -195,7 +201,8 @@ final class HydrationStore: ObservableObject {
             reminderSettings: reminderSettings,
             hasCompletedOnboarding: hasCompletedOnboarding,
             containerPresets: containerPresets,
-            pourBottleMaxML: pourBottleMaxML
+            pourBottleMaxML: pourBottleMaxML,
+            appearance: appearance
         )
         guard let data = try? encoder.encode(state) else { return }
         // Atomic write prevents corruption if the app is killed mid-save.

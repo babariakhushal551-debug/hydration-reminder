@@ -39,6 +39,9 @@ struct HydroFlowApp: App {
                 .environmentObject(notificationScheduler)
                 .environmentObject(soundManager)
                 .tint(Theme.azure)
+                // Light/Dark/System switch — user-selectable in Settings and
+                // via the quick toggle on the Today screen.
+                .preferredColorScheme(store.appearance.colorScheme)
                 .task {
                     // Refresh weather bonus daily; reschedule nudges for today
                     // (re-resolve the configured sound after install/install-permission).

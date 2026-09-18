@@ -12,6 +12,7 @@ const state = {
   sound: 'default', soundVolume: 0.8,
   bedtime: false, weather: true, haptics: true,
   pourMax: 1000,                    // Log-sheet bottle capacity (ml), user-configurable
+  appearance: 'system',             // 'system' | 'light' | 'dark'
 };
 const baseGoal = () => state.customGoalML ?? 2660;
 let bevCatalog = [
@@ -40,6 +41,23 @@ const vessels = containers; // today shelf renders from the editable presets
 
 // ---------- Helpers ----------
 const $ = (s) => document.querySelector(s);
+
+// ---------- Appearance (Light / Dark / System) ----------
+function applyAppearance() {
+  const dark = state.appearance === 'dark' ||
+    (state.appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.body.classList.toggle('dark', dark);
+}
+function cycleAppearance() {
+  state.appearance = state.appearance === 'system' ? 'light'
+    : state.appearance === 'light' ? 'dark' : 'system';
+  applyAppearance(); haptic();
+  toast('Appearance: ' + state.appearance[0].toUpperCase() + state.appearance.slice(1));
+  renderAll();
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (state.appearance === 'system') applyAppearance();
+});
 const uid = () => Math.random().toString(36).slice(2);
 const toUnit = (ml) => state.unit === 'oz' ? ml / ML_PER_OZ : ml;
 const fmt = (ml) => Math.round(toUnit(ml));
@@ -327,15 +345,16 @@ function renderToday() {
         <div class="body-b">Today, ${new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>
         <div style="font-size:11.5px;font-weight:700;color:#ff9500">🔥 ${streak} Day Streak <span style="color:var(--label2);font-weight:600">• Top ${topPct}</span></div>
       </div>
-      <div style="display:flex;align-items:center;gap:5px;background:#fff;border-radius:99px;padding:3px;box-shadow:0 1px 3px rgba(0,0,0,.07)">
+      <div style="display:flex;align-items:center;gap:5px;background:var(--card);border-radius:99px;padding:3px;box-shadow:0 1px 3px rgba(0,0,0,.07)">
         <button onclick="quickAdjustGoal(-250)" style="width:26px;height:26px;border-radius:50%;border:none;background:rgba(0,122,255,.08);color:var(--label1);font-weight:800;cursor:pointer">−</button>
         <button onclick="openGoalEditor()" style="border:none;background:none;color:var(--brand);font-weight:800;font-size:11.5px;cursor:pointer">${fmt(baseGoal())}${unitSym()}</button>
         <button onclick="quickAdjustGoal(250)" style="width:26px;height:26px;border-radius:50%;border:none;background:var(--azure);color:#fff;font-weight:800;cursor:pointer">+</button>
       </div>
-      <button class="tile" style="background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.07)" onclick="showTab('analytics')">📅</button>
+      <button class="tile" style="background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.07)" onclick="cycleAppearance()" title="Light / Dark / System">${state.appearance === 'system' ? '🌓' : state.appearance === 'light' ? '☀️' : '🌙'}</button>
+      <button class="tile" style="background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.07)" onclick="showTab('analytics')">📅</button>
     </div>
 
-    <div class="card" style="background:linear-gradient(90deg,rgba(0,122,255,.10),rgba(0,199,190,.10),#fff);display:flex;align-items:center;gap:10px">
+    <div class="card" style="background:linear-gradient(90deg,rgba(0,122,255,.10),rgba(0,199,190,.10),var(--card));display:flex;align-items:center;gap:10px">
       <div class="tile" style="background:var(--azure);color:#fff">💧</div>
       <div style="flex:1">
         <div class="eyebrow">HYDRATION RHYTHM • <span style="color:var(--aqua)">Optimal</span></div>
@@ -692,6 +711,9 @@ function renderSettings() {
       <div class="row" onclick="openBottleSizeEditor()" style="cursor:pointer"><div class="tile" style="background:rgba(0,199,190,.14)">🍶</div>
         <div style="flex:1"><div class="body-b" style="font-size:16px">Log-Sheet Bottle Size</div><div class="cap">Full capacity of the pour bottle</div></div>
         <b style="color:var(--brand);font-size:13px">${fmt(state.pourMax)} ml</b><span class="cap">›</span></div>
+      <div class="row" onclick="cycleAppearance()" style="cursor:pointer"><div class="tile" style="background:rgba(88,86,214,.14)">🌓</div>
+        <div style="flex:1"><div class="body-b" style="font-size:16px">Appearance</div><div class="cap">Light, dark, or follow system</div></div>
+        <b style="color:var(--brand);font-size:13px">${state.appearance[0].toUpperCase() + state.appearance.slice(1)}</b><span class="cap">›</span></div>
       <div class="row" onclick="resetHistory()" style="cursor:pointer"><div class="tile" style="background:rgba(88,86,214,.14)">♻️</div>
         <div style="flex:1"><div class="body-b" style="font-size:16px">Reset Preview Data</div><div class="cap">Clear all logged entries in this preview</div></div>
         <span class="cap">›</span></div>
@@ -940,5 +962,6 @@ document.querySelectorAll('.navbar button').forEach(b =>
 
 // ---------- Init ----------
 seedDemoData();
+applyAppearance();
 renderAll();
 showTab('today');

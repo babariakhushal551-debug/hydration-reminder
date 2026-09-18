@@ -13,6 +13,18 @@
     --label1:#1a1b1f; --label2:#6b7280; --label3:#aeaeb2;
     --grad:linear-gradient(135deg,#007AFF,#00C7BE);
   }
+  /* Dark theme — toggled by adding .dark to <body> (Appearance button) */
+  body.dark{
+    --canvas:#050509; --card:#121218; --hair:rgba(255,255,255,.10);
+    --label1:#f2f2f7; --label2:#9a9aa5; --label3:#6a6a75;
+    --brand:#4da3ff;
+  }
+  body.dark .navbar{background:rgba(10,10,16,.78);border-top-color:rgba(255,255,255,.08)}
+  body.dark .vessel .vi{background:#1d1d24;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+  body.dark .seg button.on{background:#26262e;color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+  body.dark .goal-line span{background:#12233b}
+  body.dark .toast{background:rgba(28,28,34,.94);color:var(--label1)}
+  body.dark .stepper-btn{background:rgba(255,255,255,.08)}
   *{margin:0;padding:0;box-sizing:border-box;font-family:'SF Pro Text',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
   body{background:#0b1120;display:flex;align-items:center;justify-content:center;min-height:100dvh;user-select:none}
   .phone{width:100%;max-width:393px;height:100dvh;max-height:852px;background:var(--canvas);position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,40,90,.25)}
@@ -22,7 +34,7 @@
   .screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:0 16px 110px;display:none;scrollbar-width:none}
   .screen::-webkit-scrollbar{display:none}
   .screen.active{display:block}
-  .card{background:var(--card);border-radius:20px;padding:16px;margin-top:12px;box-shadow:0 1px 2px rgba(16,24,40,.04);border:.5px solid rgba(0,0,0,.04)}
+  .card{background:var(--card);border-radius:20px;padding:16px;margin-top:12px;box-shadow:0 1px 2px rgba(16,24,40,.04);border:.5px solid var(--hair)}
   .tile{width:32px;height:32px;border-radius:10px;background:rgba(0,122,255,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
   .eyebrow{font-size:10px;font-weight:800;letter-spacing:.8px;color:var(--brand)}
   .cap{font-size:11px;font-weight:600;color:var(--label2)}

@@ -28,6 +28,7 @@ struct SettingsView: View {
                 remindersSection
                 soundsSection
                 targetsSection
+                appearanceSection
                 aboutFooter
             }
             .padding(.horizontal, .margin)
@@ -341,6 +342,50 @@ struct SettingsView: View {
             .font(FlowFont.caption())
             .foregroundStyle(Theme.labelTertiary)
         }
+    }
+
+    // MARK: - Appearance (Light / Dark / System)
+
+    private var appearanceSection: some View {
+        VStack(spacing: 8) {
+            SectionHeader(title: "Appearance")
+            VStack(spacing: 0) {
+                ForEach(AppearancePreference.allCases) { option in
+                    Button {
+                        Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            store.appearance = option
+                        }
+                    } label: {
+                        appearanceRow(option)
+                    }
+                    .buttonStyle(.plain)
+
+                    if option != AppearancePreference.allCases.last {
+                        Divider().padding(.leading, 54)
+                    }
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .flowCardBackground()
+        }
+    }
+
+    private func appearanceRow(_ option: AppearancePreference) -> some View {
+        HStack(spacing: 12) {
+            IconTile(systemName: option.symbolName, tint: Theme.indigo, size: 32)
+            Text(option.displayName)
+                .font(FlowFont.bodyBold())
+                .foregroundStyle(Theme.labelPrimary)
+            Spacer()
+            if store.appearance == option {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(Theme.azure)
+            }
+        }
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
     }
 
     // MARK: - Generic row

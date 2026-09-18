@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 // MARK: - Volume units
 
@@ -275,6 +276,49 @@ struct WaterEntry: Codable, Identifiable, Equatable {
 extension Double {
     /// Sane clamp for the Log-sheet bottle capacity (150 ml sip cup … 3.8 L jug).
     var clampedBottleCapacity: Double { min(max(self, 150), 3800) }
+}
+
+// MARK: - Appearance
+
+/// User-selected color scheme. `.system` follows the iOS setting.
+enum AppearancePreference: String, Codable, CaseIterable, Identifiable {
+    case system
+    case light
+    case dark
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .system: "System"
+        case .light: "Light"
+        case .dark: "Dark"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .system: "circle.lefthalf.filled"
+        case .light: "sun.max.fill"
+        case .dark: "moon.fill"
+        }
+    }    /// nil = follow the system.
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: nil
+        case .light: .light
+        case .dark: .dark
+        }
+    }
+
+    /// Cycle order for the quick-toggle button: System → Light → Dark → System.
+    var next: AppearancePreference {
+        switch self {
+        case .system: .light
+        case .light: .dark
+        case .dark: .system
+        }
+    }
 }
 
 // MARK: - Reminder settings

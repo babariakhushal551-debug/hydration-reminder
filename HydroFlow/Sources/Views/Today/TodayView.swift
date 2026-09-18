@@ -10,7 +10,6 @@ struct TodayView: View {
 
     @State private var toast: String?
     @State private var toastTask: Task<Void, Never>?
-    @State private var showGoalSheet = false
     /// Ticks every 15 s so time-relative UI ("next sip in X min") is dynamic
     /// instead of frozen at whatever value it had on the last render.
     @State private var now = Date()
@@ -44,10 +43,6 @@ struct TodayView: View {
                     .padding(.top, 8)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
-        }
-        .sheet(isPresented: $showGoalSheet) {
-            GoalEditorSheet()
-                .presentationDetents([.medium])
         }
     }
 
@@ -87,9 +82,8 @@ struct TodayView: View {
 
             Spacer(minLength: 8)
 
-            // Goal quick-adjust: − / value / + (tap value to open editor).
-            goalStepper
-
+            // Stitch header has exactly two round icon buttons: calendar and
+            // (in place of the mockup's bell) the appearance quick toggle.
             NavigationLink { AnalyticsView() } label: {
                 Image(systemName: "calendar_month")
                     .font(.system(size: 15, weight: .semibold))
@@ -119,49 +113,6 @@ struct TodayView: View {
         }
     }
 
-    /// Compact −/goal/+ control letting the user raise or lower the daily
-    /// goal right from the dashboard (step: 1 glass = 250 ml).
-    private var goalStepper: some View {
-        HStack(spacing: 6) {
-            Button {
-                adjustGoal(by: -250)
-            } label: {
-                Image(systemName: "minus")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(Theme.labelPrimary)
-                    .frame(width: 26, height: 26)
-                    .background(Circle().fill(Theme.card))
-                    .overlay(Circle().strokeBorder(Theme.hairline.opacity(0.6), lineWidth: 0.5))
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                showGoalSheet = true
-            } label: {
-                Text(goalText)
-                    .font(FlowFont.caption(11.5))
-                    .fontWeight(.bold)
-                    .monospacedDigit()
-                    .foregroundStyle(Theme.brandPrimary)
-                    .lineLimit(1)
-                    .padding(.horizontal, 6)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Daily goal \(goalText). Double tap to edit.")
-
-            Button {
-                adjustGoal(by: 250)
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 26, height: 26)
-                    .background(Circle().fill(Theme.azure))
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
     // MARK: - Rhythm card
 
     private var rhythmPill: some View {
@@ -177,13 +128,12 @@ struct TodayView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 4) {
-                    Text("HYDRATION RHYTHM")
-                        .font(FlowFont.caption(10))
-                        .fontWeight(.bold)
-                        .tracking(0.6)
+                    // Stitch mockup: title-case 12.5px label, not tracked caps.
+                    Text("Hydration Rhythm")
+                        .font(FlowFont.bodyBold(12.5))
                         .foregroundStyle(Theme.azure)
                     Text("• Optimal")
-                        .font(FlowFont.caption(10))
+                        .font(FlowFont.caption(10.5))
                         .fontWeight(.semibold)
                         .foregroundStyle(Theme.aqua)
                 }
@@ -237,8 +187,9 @@ struct TodayView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
                 .frame(maxWidth: .infinity)
-                .background(Capsule().fill(Theme.azure.opacity(0.07)))
-                .overlay(Capsule().strokeBorder(Theme.azure.opacity(0.14), lineWidth: 0.5))
+                // Stitch feedback pill: frosted neutral glass, hairline edge.
+                .background(Capsule().fill(Theme.frosted))
+                .overlay(Capsule().strokeBorder(Theme.hairline, lineWidth: 0.5))
             }
             .frame(maxWidth: .infinity)
         }
@@ -248,7 +199,7 @@ struct TodayView: View {
 
     private var quickStatsRow: some View {
         HStack(spacing: 12) {
-            statCard(icon: "clock.fill", tint: Theme.azure, eyebrow: "LAST DRINK") {
+            statCard(icon: "clock.fill", tint: Theme.azure, eyebrow: "Last drink") {
                 if let last = store.lastEntry {
                     Text("\(Int(store.profile.unit.value(fromML: last.volumeML).rounded())) \(store.profile.unit.symbol) \(last.beverage.displayName)")
                         .font(FlowFont.bodyBold(14))
@@ -267,7 +218,7 @@ struct TodayView: View {
                 }
             }
 
-            statCard(icon: "chart.pie.fill", tint: Theme.aqua, eyebrow: "DAILY TARGET") {
+            statCard(icon: "chart.pie.fill", tint: Theme.aqua, eyebrow: "Daily Target") {
                 Text(remainingText)
                     .font(FlowFont.bodyBold(14))
                     .lineLimit(1)
@@ -286,8 +237,9 @@ struct TodayView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
                     IconTile(systemName: icon, tint: tint, size: 28)
+                    // Stitch eyebrows: title-case semibold captions, not caps.
                     Text(eyebrow)
-                        .font(FlowFont.caption(10))
+                        .font(FlowFont.caption(10.5))
                         .fontWeight(.semibold)
                         .foregroundStyle(Theme.labelSecondary)
                 }
@@ -344,7 +296,8 @@ struct TodayView: View {
                         .foregroundStyle(Theme.labelSecondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
-                        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.azure.opacity(0.07)))
+                        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.frosted))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.azure.opacity(0.2), lineWidth: 0.5))
                     }
                     .buttonStyle(.plain)
 
@@ -388,7 +341,8 @@ struct TodayView: View {
                         .foregroundStyle(Theme.labelSecondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
-                        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.azure.opacity(0.07)))
+                        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.frosted))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.azure.opacity(0.2), lineWidth: 0.5))
                     }
                     .buttonStyle(.plain)
                 }
@@ -455,10 +409,6 @@ struct TodayView: View {
 
     private var unit: VolumeUnit { store.profile.unit }
 
-    private var goalText: String {
-        "\(Int(unit.value(fromML: store.baseGoalML).rounded()))\(unit.symbol)"
-    }
-
     private var streakText: String {
         let s = store.currentStreak
         return "\(s) Day Streak"
@@ -495,11 +445,11 @@ struct TodayView: View {
         let delta = next > nowMinutes ? next - nowMinutes : (24 * 60 - nowMinutes) + next
         if delta <= 1 { return "Sip time — grab some water now 💧" }
 
+        // Stitch wording: "Next recommended sip in 24 mins".
         let hours = delta / 60
         let mins = delta % 60
-        let countdown = hours > 0 ? "\(hours) h \(mins) min" : "\(mins) min"
-        let clock = String(format: "%d:%02d", next / 60, next % 60)
-        return "Next sip in \(countdown) — at \(clock)"
+        let countdown = hours > 0 ? "\(hours) h \(mins) mins" : "\(mins) mins"
+        return "Next recommended sip in \(countdown)"
     }
 
     private var feedbackLine: String {
@@ -521,16 +471,6 @@ struct TodayView: View {
     private var repeatLabel: String {
         guard let last = store.lastEntry else { return "Repeat" }
         return "+\(Int(unit.value(fromML: last.volumeML).rounded())) \(unit.symbol)"
-    }
-
-    /// Raise/lower the goal by `deltaML`, clamped to a sane 1000–5000 ml band.
-    private func adjustGoal(by deltaML: Double) {
-        let newGoal = min(max(store.baseGoalML + Double(deltaML), 1000), 5000)
-        guard abs(newGoal - store.baseGoalML) > 0.5 else { return }
-        Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
-        store.profile.customGoalML = newGoal
-        let value = Int(unit.value(fromML: newGoal).rounded())
-        showToast("Daily goal set to \(value) \(unit.symbol)")
     }
 
     private func logQuick(_ vessel: QuickLogVessel) {
@@ -639,12 +579,14 @@ struct QuickVesselButton: View {
             .padding(.vertical, 10)
             .padding(.horizontal, 4)
             .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Theme.azure.opacity(0.05))
+                // Stitch quick-add chip: frosted glass (white/70), 12px
+                // squircle, hairline azure border.
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Theme.frosted)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Theme.azure.opacity(0.14), lineWidth: 0.5)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(Theme.azure.opacity(0.2), lineWidth: 0.5)
             )
         }
         .buttonStyle(.plain)

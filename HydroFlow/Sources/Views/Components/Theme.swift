@@ -47,9 +47,14 @@ enum Theme {
 
     // MARK: - Text hierarchy
 
-    static let labelPrimary = Color(UIColor.label)
-    static let labelSecondary = Color(UIColor.secondaryLabel)
-    static let labelTertiary = Color(UIColor.tertiaryLabel)
+    // Exact stitch values (Tailwind classes in the mockups):
+    // on-surface #1a1b1f, on-surface-variant #717786, tertiary #AEAEB2.
+    static let labelPrimary = dynamic(light: UIColor(red: 0.102, green: 0.106, blue: 0.122, alpha: 1),
+                                      dark: UIColor(red: 0.949, green: 0.949, blue: 0.969, alpha: 1))
+    static let labelSecondary = dynamic(light: UIColor(red: 0.443, green: 0.467, blue: 0.525, alpha: 1),
+                                        dark: UIColor(red: 0.604, green: 0.604, blue: 0.647, alpha: 1))
+    static let labelTertiary = dynamic(light: UIColor(red: 0.682, green: 0.682, blue: 0.698, alpha: 1),
+                                       dark: UIColor(red: 0.416, green: 0.416, blue: 0.459, alpha: 1))
 
     // MARK: - Semantic
 
@@ -59,6 +64,11 @@ enum Theme {
 
     /// Icon-tile backgrounds (soft tinted squircles behind SF Symbols).
     static func tile(_ color: Color) -> Color { color.opacity(0.14) }
+
+    /// Stitch frosted-glass surface (`bg-white/70–80` on light); dims to a
+    /// subtle translucent white on dark so chips never glare.
+    static let frosted = dynamic(light: UIColor(white: 1, alpha: 0.72),
+                                 dark: UIColor(white: 1, alpha: 0.10))
 
     // MARK: - Gradients
 
@@ -109,8 +119,8 @@ enum FlowFont {
 extension CGFloat {
     /// Outer screen gutter from the design system.
     static let margin: CGFloat = 16
-    /// Standard card corner radius (continuous squircle look).
-    static let cardRadius: CGFloat = 20
+    /// Standard card corner radius (stitch `rounded-2xl` = 16px).
+    static let cardRadius: CGFloat = 16
     /// Small element radius.
     static let chipRadius: CGFloat = 12
 }

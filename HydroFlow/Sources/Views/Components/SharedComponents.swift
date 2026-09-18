@@ -50,13 +50,13 @@ struct IconTile: View {
 
 // MARK: - Section header
 
-/// Uppercase eyebrow label above grouped sections.
+/// Section label above grouped lists (stitch uses title-case, not caps).
 struct SectionHeader: View {
     let title: String
 
     var body: some View {
-        Text(title.uppercased())
-            .font(FlowFont.subhead(12))
+        Text(title)
+            .font(FlowFont.bodyBold(13))
             .foregroundStyle(Theme.labelSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.leading, 12)

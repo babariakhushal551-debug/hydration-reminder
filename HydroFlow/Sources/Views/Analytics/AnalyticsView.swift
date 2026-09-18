@@ -155,10 +155,9 @@ struct AnalyticsView: View {
         return FlowCard {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("\(mode.label.uppercased()) METRIC")
-                        .font(FlowFont.caption(10))
-                        .fontWeight(.bold)
-                        .tracking(0.6)
+                    Text("\(mode.label) Metric")
+                        .font(FlowFont.caption(10.5))
+                        .fontWeight(.semibold)
                         .foregroundStyle(Theme.brandPrimary)
                     Text("\(daysMet) / \(max(totals.count, 1)) Days Goal Met")
                         .font(FlowFont.headline())

@@ -22,10 +22,13 @@ struct BottleFillView: View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { timeline in
             let t = timeline.date.timeIntervalSince(waveStart)
 
-            HStack(spacing: 18) {
+            ZStack {
                 bottle(t: t)
                     .frame(width: 150, height: 270)
 
+                // Stitch mockup: the readout is centered ON the bottle as a
+                // frosted-glass typography badge (drop tile, 44px hero number,
+                // "Goal: X" pill with an azure % chip).
                 readout
             }
             .frame(maxWidth: .infinity)
@@ -128,9 +131,22 @@ struct BottleFillView: View {
 
     // MARK: - Readout
 
+    /// Frosted typography badge floating over the bottle, per the stitch
+    /// mockup: white/80 glass, hero number with unit, then a capsule holding
+    /// "Goal: 90 oz" plus a solid-azure percentage chip.
     private var readout: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
+        VStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .fill(Theme.frosted)
+                    .frame(width: 30, height: 30)
+                    .shadow(color: .black.opacity(0.06), radius: 3, y: 1)
+                Image(systemName: "drop.fill")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Theme.azure)
+            }
+
+            VStack(spacing: 0) {
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
                     Text("\(unit.value(fromML: currentML), specifier: "%.0f")")
                         .font(FlowFont.display(40))
@@ -138,41 +154,41 @@ struct BottleFillView: View {
                         .contentTransition(.numericText())
                         .foregroundStyle(Theme.labelPrimary)
                     Text(unit.symbol)
-                        .font(FlowFont.headline(17))
+                        .font(FlowFont.headline(16))
+                        .fontWeight(.bold)
                         .foregroundStyle(Theme.labelSecondary)
                 }
-                Text("of \(unit.value(fromML: goalML), specifier: "%.0f") \(unit.symbol) goal")
-                    .font(FlowFont.subhead())
-                    .foregroundStyle(Theme.labelSecondary)
             }
-
-            // Progress bar mirroring the bottle level.
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Theme.azure.opacity(0.12))
-                    Capsule()
-                        .fill(Theme.flowGradient)
-                        .frame(width: geo.size.width * min(CGFloat(progress), 1))
-                        .animation(.spring(response: 0.9, dampingFraction: 0.85), value: progress)
-                }
-            }
-            .frame(width: 130, height: 8)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 2)
+            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.frosted))
+            .shadow(color: .black.opacity(0.05), radius: 4, y: 1)
 
             HStack(spacing: 6) {
+                Text("Goal: \(unit.value(fromML: goalML), specifier: "%.0f") \(unit.symbol)")
+                    .font(FlowFont.subhead(12.5))
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Theme.labelPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+
                 Text("\(Int((progress * 100).rounded()))%")
-                    .font(FlowFont.caption(12))
+                    .font(FlowFont.caption(11))
                     .fontWeight(.bold)
+                    .monospacedDigit()
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 7)
+                    .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Capsule().fill(Theme.azure))
                     .scaleEffect(milestonePulse ? 1.15 : 1)
-
-                Image(systemName: progress >= 1 ? "checkmark.seal.fill" : "drop.fill")
-                    .font(.system(size: 14))
-                    .foregroundStyle(progress >= 1 ? Theme.success : Theme.azure)
             }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Capsule().fill(Theme.frosted))
+            .overlay(Capsule().strokeBorder(Color.white.opacity(0.6), lineWidth: 0.5))
+            .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
         }
+        .allowsHitTesting(false)
     }
 }
 

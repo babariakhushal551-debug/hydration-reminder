@@ -112,14 +112,16 @@ struct SettingsView: View {
         }
         .padding(14)
         .background(
+            // Stitch mockup: the Next Drink Alert banner is a plain white
+            // surface card, not a tinted gradient.
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(LinearGradient(colors: [Theme.azure.opacity(0.14), Theme.aqua.opacity(0.12)],
-                                     startPoint: .leading, endPoint: .trailing))
+                .fill(Theme.card)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Theme.azure.opacity(0.18), lineWidth: 0.5)
+                .strokeBorder(Theme.hairline, lineWidth: 0.5)
         )
+        .shadow(color: Theme.azure.opacity(0.06), radius: 10, y: 4)
     }
 
     /// BUG FIX: the old logic compared only hour numbers, so at 9:30 AM it

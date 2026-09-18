@@ -87,7 +87,7 @@ private struct SmallBottleView: View {
                     .foregroundStyle(.white)
                 if snapshot.streak > 0 {
                     Text("🔥\(snapshot.streak)")
-                        .font(.system(size: 10, weight: .bold, ))
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(.white.opacity(0.95))
                 }
             }
@@ -100,11 +100,11 @@ private struct SmallBottleView: View {
 
             VStack(spacing: 0) {
                 Text(snapshot.displayText())
-                    .font(.system(size: 14, weight: .heavy, ))
+                    .font(.system(size: 14, weight: .heavy))
                     .monospacedDigit()
                     .foregroundStyle(.primary)
                 Text("of \(snapshot.goalText())")
-                    .font(.system(size: 9, weight: .semibold, ))
+                    .font(.system(size: 9, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
         }
@@ -130,10 +130,10 @@ private struct MediumBottleView: View {
                         .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(Color(red: 0, green: 0.48, blue: 1))
                     Text("HydroFlow")
-                        .font(.system(size: 12, weight: .heavy, ))
+                        .font(.system(size: 12, weight: .heavy))
                     if snapshot.streak > 0 {
                         Text("🔥 \(snapshot.streak)d")
-                            .font(.system(size: 10, weight: .bold, ))
+                            .font(.system(size: 10, weight: .bold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(Capsule().fill(Color.orange.opacity(0.15)))
@@ -143,10 +143,10 @@ private struct MediumBottleView: View {
 
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
                     Text(snapshot.displayText())
-                        .font(.system(size: 26, weight: .heavy, ))
+                        .font(.system(size: 26, weight: .heavy))
                         .monospacedDigit()
                     Text("/ \(snapshot.goalText())")
-                        .font(.system(size: 13, weight: .bold, ))
+                        .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(.secondary)
                 }
 
@@ -163,7 +163,7 @@ private struct MediumBottleView: View {
                 .frame(height: 8)
 
                 Text(pct >= 100 ? "Goal complete! 🎉" : "\(pct)% — keep sipping 💧")
-                    .font(.system(size: 10.5, weight: .bold, ))
+                    .font(.system(size: 10.5, weight: .bold))
                     .foregroundStyle(pct >= 100 ? Color(red: 0.1, green: 0.68, blue: 0.35) : .secondary)
             }
         }
@@ -193,7 +193,7 @@ private struct AccessoryRingView: View {
                 Image(systemName: "drop.fill")
                     .font(.system(size: 11, weight: .bold))
                 Text("\(Int((snapshot.progress * 100).rounded()))%")
-                    .font(.system(size: 13, weight: .bold, ))
+                    .font(.system(size: 13, weight: .bold))
                     .monospacedDigit()
                     .minimumScaleFactor(0.7)
             }
@@ -219,7 +219,7 @@ private struct AccessoryRowView: View {
             .foregroundStyle(.cyan)
 
             Text("\(snapshot.displayText()) / \(snapshot.goalText())")
-                .font(.system(size: 13, weight: .bold, ))
+                .font(.system(size: 13, weight: .bold))
                 .monospacedDigit()
 
             if snapshot.streak > 0 {

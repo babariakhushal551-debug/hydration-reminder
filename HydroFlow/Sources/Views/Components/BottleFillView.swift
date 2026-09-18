@@ -119,7 +119,7 @@ struct BottleFillView: View {
                 .fill(Theme.azure.opacity(0.35))
                 .frame(width: 12, height: 2)
             Text("\(Int(fraction * 100))%")
-                .font(.system(size: 8, weight: .bold, ))
+                .font(.system(size: 8, weight: .bold))
                 .foregroundStyle(Theme.azure.opacity(0.55))
         }
         .position(x: 28, y: y)

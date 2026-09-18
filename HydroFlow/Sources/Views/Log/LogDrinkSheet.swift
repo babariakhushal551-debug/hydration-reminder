@@ -138,7 +138,7 @@ struct LogDrinkSheet: View {
                         }
                         VStack(spacing: 2) {
                             Text("\(Int(volumeDisplayValue.rounded()))")
-                                .font(.system(size: 30, weight: .bold, ))
+                                .font(.system(size: 30, weight: .bold))
                                 .monospacedDigit()
                                 .contentTransition(.numericText())
                             Text(unit.symbol)

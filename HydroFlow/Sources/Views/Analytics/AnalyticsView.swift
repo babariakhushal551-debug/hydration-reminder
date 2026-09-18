@@ -487,7 +487,7 @@ struct RangeBarChart: View {
                     .fill(Theme.azure.opacity(0.30))
                     .frame(height: 1)
                 Text("\(Int(unit.value(fromML: goalML).rounded())) \(unit.symbol)")
-                    .font(.system(size: 10, weight: .semibold, ))
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(Theme.brandPrimary)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 1)
@@ -577,7 +577,7 @@ struct DayBar: View {
     var body: some View {
         VStack(spacing: 4) {
             Text(showValue && !isFuture ? "\(Int(unit.value(fromML: totalML).rounded()))" : " ")
-                .font(.system(size: 9, weight: isToday ? .bold : .medium, ))
+                .font(.system(size: 9, weight: isToday ? .bold : .medium))
                 .foregroundStyle(isToday ? Theme.brandPrimary : Theme.labelSecondary)
                 .frame(height: 12)
 

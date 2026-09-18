@@ -49,6 +49,10 @@ targets:
       - path: ../Sources/Services/WidgetShared.swift
     info:
       path: ../Widget/Info.plist
+      properties:
+        CFBundleDisplayName: HydroFlow Widget
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hydroflow.app.widget

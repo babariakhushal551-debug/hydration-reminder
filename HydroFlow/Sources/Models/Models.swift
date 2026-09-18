@@ -255,7 +255,7 @@ struct UserProfile: Codable, Equatable {
 
 /// One logged drink.
 struct WaterEntry: Codable, Identifiable, Equatable {
-    /// Stable identifier, persisted for HealthKit de-duplication.
+    /// Stable identifier, persisted across saves.
     var id: UUID = UUID()
     /// Absolute time of logging.
     var date: Date
@@ -270,6 +270,11 @@ struct WaterEntry: Codable, Identifiable, Equatable {
 
     /// Hydration credit in milliliters (volume × factor).
     var hydrationML: Double { volumeML * hydrationFactor }
+}
+
+extension Double {
+    /// Sane clamp for the Log-sheet bottle capacity (150 ml sip cup … 3.8 L jug).
+    var clampedBottleCapacity: Double { min(max(self, 150), 3800) }
 }
 
 // MARK: - Reminder settings
@@ -343,7 +348,8 @@ struct ReminderSettings: Codable, Equatable {
     /// Active window end hour (0–23), e.g. 22 for 10 PM. May wrap past midnight.
     var activeEndHour: Int = 22
     /// Bedtime mode mutes everything overnight regardless of window.
-    var bedtimeMode: Bool = true
+    /// Default OFF — starting ON silently suppressed the whole schedule.
+    var bedtimeMode: Bool = false
     /// Dynamic weather adds bonus goal on hot days.
     var dynamicWeather: Bool = true
     /// Haptic feedback on logging.
@@ -400,7 +406,7 @@ struct ReminderSettings: Codable, Equatable {
         customIntervalMinutes = try c.decodeIfPresent(Double.self, forKey: .customIntervalMinutes)
         activeStartHour = try c.decodeIfPresent(Int.self, forKey: .activeStartHour) ?? 8
         activeEndHour = try c.decodeIfPresent(Int.self, forKey: .activeEndHour) ?? 22
-        bedtimeMode = try c.decodeIfPresent(Bool.self, forKey: .bedtimeMode) ?? true
+        bedtimeMode = try c.decodeIfPresent(Bool.self, forKey: .bedtimeMode) ?? false
         dynamicWeather = try c.decodeIfPresent(Bool.self, forKey: .dynamicWeather) ?? true
         hapticsEnabled = try c.decodeIfPresent(Bool.self, forKey: .hapticsEnabled) ?? true
         soundName = try c.decodeIfPresent(String.self, forKey: .soundName) ?? "default"

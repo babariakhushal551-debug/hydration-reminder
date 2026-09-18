@@ -8,19 +8,19 @@ A polished, native **iOS 17 SwiftUI hydration tracker** — built from the Hydro
 |---|---|
 | **Onboarding** | Name, weight (lbs/kg stepper), biological sex, pregnancy/breastfeeding pills, 2×2 activity grid, climate picker, live goal-baseline pill |
 | **Today** | Animated liquid-glass hydration orb (waves + bubbles + specular sheen), gradient progress ring, hydration-rhythm pill, quick stats, one-tap vessel logging, recent sips |
-| **Log Hydration** | Volume stepper with mini liquid gauge, 6 preset chips, 12-beverage list with hydration indexes |
+| **Log Hydration** | Draggable pour bottle with **user-set capacity** (150–3,800 ml), 6 preset chips, 12-beverage list with hydration indexes |
 | **Analytics** | Weekly summary (days met, avg, WoW %), animated bar chart with goal line + "Today" marker, day-breakdown timeline, monthly consistency heat-map |
 | **History** | All entries grouped by day with per-day totals, swipe-to-delete |
-| **Settings** | Smart reminders (interval, active hours, bedtime mode), dynamic weather, sounds & haptics, goal editor, profile editor, HealthKit connect, history reset |
+| **Settings** | Smart reminders (interval, active hours, bedtime mode), dynamic weather, sounds & haptics, goal editor, profile editor, container-preset manager (add / edit / **delete with confirm**), bottle-capacity editor, history reset |
 
 ## Features (mapped to the plan)
 
 - ✅ One-tap logging (vessel chips + repeat-last-sip)
-- ✅ Smart reminders via `UNUserNotificationCenter` — interval, active hours, bedtime mode
+- ✅ Smart reminders via `UNUserNotificationCenter` — permission requested on first launch, interval, active hours (wrap-safe), bedtime mode (default off)
 - ✅ Personalized goal: sex baseline blended with weight heuristic, + pregnancy/breastfeeding/activity/climate modifiers
 - ✅ Streaks, weekly/monthly stats, calendar heat-map
 - ✅ Multi-beverage hydration factors (coffee 80%, electrolytes 110%, …)
-- ✅ HealthKit sync (`dietaryWater`) with de-duplication metadata
+- ✅ User-configurable Log-sheet bottle capacity (150–3,800 ml, persisted)
 - ✅ Dynamic weather bonus on hot days (offline seasonal model, pluggable provider)
 - ✅ Confetti + haptics on goal completion
 - ✅ Dark mode, Dynamic Type–friendly system text styles, 60 fps TimelineView animations
@@ -32,7 +32,7 @@ HydroFlow/
 ├── Sources/
 │   ├── App/            # App entry, root, tabs
 │   ├── Models/         # UserProfile, WaterEntry, BeverageType, ReminderSettings
-│   ├── Services/       # GoalCalculator, StatsEngine, Notifications, HealthKit, Weather, Haptics
+│   ├── Services/       # GoalCalculator, StatsEngine, Notifications, Weather, Sound, Haptics
 │   ├── Store/          # HydrationStore (JSON persistence, debounced background saves)
 │   └── Views/
 │       ├── Components/ # Theme, shared components, orb, confetti
@@ -104,7 +104,7 @@ cd webapp
 python -m http.server 8080
 ```
 
-Then open `http://<your-computer-LAN-IP>:8080` in Safari on your iPhone (same Wi-Fi), or `http://localhost:8080` on the PC. It is a **demo of the UI**, not the native app — HealthKit/notifications only exist in the SwiftUI build.
+Then open `http://<your-computer-LAN-IP>:8080` in Safari on your iPhone (same Wi-Fi), or `http://localhost:8080` on the PC. It is a **demo of the UI**, not the native app — system notifications only exist in the SwiftUI build.
 
 ## Design system
 

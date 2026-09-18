@@ -8,7 +8,6 @@ struct SettingsView: View {
     @EnvironmentObject var store: HydrationStore
     @EnvironmentObject var notificationScheduler: NotificationScheduler
     @EnvironmentObject var soundManager: SoundManager
-    @EnvironmentObject var healthKit: HealthKitManager
 
     @State private var showGoalEditor = false
     @State private var showIntervalPicker = false
@@ -16,6 +15,10 @@ struct SettingsView: View {
     @State private var showProfileEditor = false
     @State private var showSoundPicker = false
     @State private var showPresetsEditor = false
+    @State private var showBottleSizeEditor = false
+    @State private var confirmPresetDelete = false
+    @State private var pendingPresetDelete: ContainerPreset?
+    @State private var confirmPresetsReset = false
     @State private var confirmReset = false
 
     var body: some View {
@@ -42,6 +45,7 @@ struct SettingsView: View {
         .sheet(isPresented: $showProfileEditor) { profileEditor }
         .sheet(isPresented: $showSoundPicker) { soundPicker }
         .sheet(isPresented: $showPresetsEditor) { presetsEditor }
+        .sheet(isPresented: $showBottleSizeEditor) { bottleSizeEditor }
         .alert("Reset all hydration history?", isPresented: $confirmReset) {
             Button("Cancel", role: .cancel) {}
             Button("Reset", role: .destructive) {
@@ -49,6 +53,24 @@ struct SettingsView: View {
             }
         } message: {
             Text("Logged entries will be permanently removed. Your profile and settings are kept.")
+        }
+        .alert("Delete preset?", isPresented: $confirmPresetDelete, presenting: pendingPresetDelete) { preset in
+            Button("Cancel", role: .cancel) {}
+            Button("Delete \(preset.name.isEmpty ? "Preset" : preset.name)", role: .destructive) {
+                store.containerPresets.removeAll { $0.id == preset.id }
+                handlePresetDeletion()
+                Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
+            }
+        } message: { preset in
+            Text("\"\(preset.name.isEmpty ? "Untitled" : preset.name)" + " (\(preset.volumeText(unit: store.profile.unit)))\" will be removed from the quick-log shelf.")
+        }
+        .alert("Reset all presets to the default five vessels?", isPresented: $confirmPresetsReset) {
+            Button("Cancel", role: .cancel) {}
+            Button("Reset Presets", role: .destructive) {
+                store.containerPresets = ContainerPreset.defaults
+            }
+        } message: {
+            Text("Custom containers will be removed and the default Cup, Glass, Mug, Bottle, and Jug will be restored.")
         }
     }
 
@@ -92,16 +114,44 @@ struct SettingsView: View {
         )
     }
 
+    /// BUG FIX: the old logic compared only hour numbers, so at 9:30 AM it
+    /// claimed the 9 AM reminder was still "today at 9:00 AM", and windows
+    /// wrapping midnight showed nonsense. Compute real wall-clock dates.
     private var nextAlertText: String {
-        let times = NotificationScheduler.plannedReminderTimes(settings: store.reminderSettings)
+        let settings = store.reminderSettings
+        guard settings.remindersEnabled, !settings.bedtimeMode else { return "Reminders paused" }
+        guard notificationScheduler.authorizationStatus == .authorized
+                || notificationScheduler.authorizationStatus == .provisional
+                || notificationScheduler.authorizationStatus == .notDetermined else {
+            return "Notifications off — enable them in Settings"
+        }
+
+        let times = NotificationScheduler.plannedReminderTimes(settings: settings)
         guard !times.isEmpty else { return "Reminders paused" }
-        // Next slot at/after the current time, else the first one tomorrow.
-        let hour = Calendar.current.component(.hour, from: Date())
-        let next = times.first { $0.hour >= hour } ?? times[0]
-        let label = next.hour >= 12 ? "PM" : "AM"
-        let displayHour = next.hour % 12 == 0 ? 12 : next.hour % 12
-        let day = (next.hour < hour) ? "tomorrow" : "today"
-        return "\(day) at \(displayHour):\(String(format: "%02d", next.minute)) \(label)"
+
+        let now = Date()
+        let cal = Calendar.current
+        var nextDate: Date?
+        for slot in times {
+            var comps = DateComponents()
+            comps.hour = slot.hour
+            comps.minute = slot.minute
+            if let candidate = cal.nextDate(after: now, matching: comps, matchingPolicy: .nextTimePreservingSmallerComponents) {
+                if nextDate.map({ candidate < $0 }) ?? true {
+                    nextDate = candidate
+                }
+            }
+        }
+        guard let when = nextDate else { return "Reminders paused" }
+
+        let displayHour = when.hour12
+        let minute = String(format: "%02d", cal.component(.minute, from: when))
+        let meridiem = cal.component(.hour, from: when) >= 12 ? "PM" : "AM"
+        let day: String
+        if cal.isDateInToday(when) { day = "today" }
+        else if cal.isDateInTomorrow(when) { day = "tomorrow" }
+        else { day = Self.shortDayFormatter.string(from: when) }
+        return "\(day) at \(displayHour):\(minute) \(meridiem)"
     }
 
     private var bannerBadge: String {
@@ -231,22 +281,6 @@ struct SettingsView: View {
                 .onTapGesture { showGoalEditor = true }
                 Divider().padding(.leading, 54)
 
-                row(icon: "heart.fill", iconTint: Theme.destructive, title: "Apple Health Sync",
-                    subtitle: "Writes every logged drink to HealthKit") {
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(healthStatusColor)
-                            .frame(width: 8, height: 8)
-                        Text(healthStatusText)
-                            .font(FlowFont.subhead())
-                            .fontWeight(.semibold)
-                            .foregroundStyle(healthStatusColor)
-                    }
-                }
-                .contentShape(Rectangle())
-                .onTapGesture { Task { await connectHealth() } }
-                Divider().padding(.leading, 54)
-
                 row(icon: "cup.and.saucer.fill", iconTint: Theme.indigo, title: "Container Presets",
                     subtitle: "\(store.containerPresets.count) vessels · tap to edit") {
                     Image(systemName: "chevron.right")
@@ -255,6 +289,20 @@ struct SettingsView: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture { showPresetsEditor = true }
+                Divider().padding(.leading, 54)
+
+                row(icon: "waterbottle.fill", iconTint: Theme.aqua, title: "Log-Sheet Bottle Size",
+                    subtitle: "Full capacity of the pour bottle (\(Int(store.pourBottleMaxML.rounded())) ml)") {
+                    Text("\(Int(store.pourBottleMaxML.rounded())) ml")
+                        .font(FlowFont.subhead())
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Theme.brandPrimary)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Theme.labelTertiary)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { showBottleSizeEditor = true }
                 Divider().padding(.leading, 54)
 
                 row(icon: "figure.arms.open", iconTint: .orange, title: "Profile & Units",
@@ -270,16 +318,6 @@ struct SettingsView: View {
             .padding(.vertical, 6)
             .flowCardBackground()
         }
-    }
-
-    private var healthStatusText: String {
-        if !healthKit.isAvailable { return "Unavailable" }
-        return healthKit.isAuthorized ? "Connected" : "Tap to connect"
-    }
-
-    private var healthStatusColor: Color {
-        if !healthKit.isAvailable { return Theme.labelTertiary }
-        return healthKit.isAuthorized ? Theme.success : .orange
     }
 
     private var aboutFooter: some View {
@@ -298,7 +336,7 @@ struct SettingsView: View {
 
             VStack(spacing: 3) {
                 Text("HydroFlow v1.1 (Build 2)")
-                Text("Designed with Apple HealthKit Integration")
+                Text("Your hydration data never leaves this device")
             }
             .font(FlowFont.caption())
             .foregroundStyle(Theme.labelTertiary)
@@ -680,10 +718,30 @@ struct SettingsView: View {
                 Section {
                     ForEach($store.containerPresets) { $preset in
                         presetRow($preset)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    pendingPresetDelete = preset.wrappedValue
+                                    confirmPresetDelete = true
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    pendingPresetDelete = preset.wrappedValue
+                                    confirmPresetDelete = true
+                                } label: {
+                                    Label("Delete \(preset.wrappedValue.name.isEmpty ? "Preset" : preset.wrappedValue.name)", systemImage: "trash")
+                                }
+                            }
                     }
                     .onDelete { indexSet in
-                        guard store.containerPresets.count > indexSet.count else { return }
-                        store.containerPresets.remove(atOffsets: indexSet)
+                        // Route through the confirm dialog instead of deleting
+                        // instantly (accidental swipes were unrecoverable).
+                        if let idx = indexSet.first, idx < store.containerPresets.count {
+                            pendingPresetDelete = store.containerPresets[idx]
+                            confirmPresetDelete = true
+                        }
                     }
                     .onMove { from, to in
                         store.containerPresets.move(fromOffsets: from, toOffset: to)
@@ -691,7 +749,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Your vessels — shown on the Today quick-log shelf")
                 } footer: {
-                    Text("Tap a row to rename it or change its volume. Drag to reorder; swipe to delete (keep at least one).")
+                    Text("Tap a row to rename it or change its volume. Swipe left (long-press also works) and confirm to delete. Drag to reorder. If the shelf feels empty, you can always add or reset below.")
                 }
 
                 Section {
@@ -699,9 +757,20 @@ struct SettingsView: View {
                         addPreset()
                     } label: {
                         Label("Add Container", systemImage: "plus.circle.fill")
-                            .font(FlowFont.bodyBold())
+                            .font(.body.weight(.semibold))
                             .foregroundStyle(Theme.azure)
                     }
+
+                    Button(role: .destructive) {
+                        confirmPresetsReset = true
+                    } label: {
+                        Label("Reset to Defaults", systemImage: "arrow.counterclockwise")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(Theme.destructive)
+                    }
+                    .disabled(store.containerPresets == ContainerPreset.defaults)
+                } footer: {
+                    Text("Deleting the last vessel automatically restores the default five, so quick-log never ends up empty.")
                 }
             }
             .listStyle(.insetGrouped)
@@ -714,6 +783,100 @@ struct SettingsView: View {
                         .fontWeight(.semibold)
                 }
             }
+        }
+    }
+
+    /// BUG FIX: the pour-bottle capacity was fixed at 1000 ml. This editor lets
+    /// the user size the Log-sheet bottle (150–3800 ml) to match their real vessel.
+    private var bottleSizeEditor: some View {
+        NavigationStack {
+            VStack(spacing: 18) {
+                Text("Bottle Capacity")
+                    .font(FlowFont.headline())
+                    .padding(.top, 24)
+
+                Text("Sets what a full bottle means on the Log Hydration sheet. Pick a value close to your actual bottle or glass.")
+                    .font(FlowFont.caption())
+                    .foregroundStyle(Theme.labelSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+
+                HStack(spacing: 22) {
+                    Button {
+                        Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
+                        store.pourBottleMaxML = min(max((store.pourBottleMaxML - 100).rounded(), 150), 3800)
+                    } label: {
+                        Image(systemName: "minus")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(Theme.azure)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Theme.azure.opacity(0.10)))
+                    }
+                    .buttonStyle(.plain)
+
+                    VStack(spacing: 2) {
+                        Text("\(Int(store.pourBottleMaxML.rounded()))")
+                            .font(FlowFont.stat(40))
+                            .monospacedDigit()
+                            .contentTransition(.numericText())
+                        Text("ml capacity")
+                            .font(FlowFont.bodyBold())
+                            .foregroundStyle(Theme.labelSecondary)
+                    }
+                    .frame(minWidth: 120)
+
+                    Button {
+                        Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
+                        store.pourBottleMaxML = min(max((store.pourBottleMaxML + 100).rounded(), 150), 3800)
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Theme.azure))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Slider(value: Binding(
+                    get: { store.pourBottleMaxML },
+                    set: { store.pourBottleMaxML = ($0 / 50).rounded() * 50 }
+                ), in: 150...3800, step: 50)
+                .tint(Theme.azure)
+                .padding(.horizontal, 24)
+
+                VStack(spacing: 10) {
+                    Button {
+                        Feedback.sipLogged(enabled: store.reminderSettings.hapticsEnabled)
+                        showBottleSizeEditor = false
+                    } label: {
+                        Text("Save \(Int(store.pourBottleMaxML.rounded())) ml Bottle")
+                            .font(FlowFont.headlineSmall())
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Capsule().fill(Theme.flowGradient))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 20)
+
+                    Button {
+                        Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
+                        store.pourBottleMaxML = 1000
+                    } label: {
+                        Label("Reset to 1000 ml", systemImage: "arrow.clockwise")
+                            .font(FlowFont.bodyBold())
+                            .foregroundStyle(Theme.brandPrimary)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Spacer()
+            }
+            .background(Theme.card)
+            .navigationTitle("Log-Sheet Bottle Size")
+            .navigationBarTitleDisplayMode(.inline)
+            .presentationDetents([.medium])
         }
     }
 
@@ -741,6 +904,14 @@ struct SettingsView: View {
         withAnimation { store.containerPresets.append(new) }
     }
 
+    /// Deleting the very last vessel is almost always accidental; restore the
+    /// defaults instead of leaving the Today shelf unusable.
+    private func handlePresetDeletion() {
+        if store.containerPresets.isEmpty {
+            store.containerPresets = ContainerPreset.defaults
+        }
+    }
+
     // MARK: - Sheets & logic
 
     private var goalEditor: some View {
@@ -759,10 +930,6 @@ struct SettingsView: View {
 
     private var weatherSubtitle: String {
         WeatherProviding.isHotDay() ? "Hot day detected — bonus active!" : "Auto-adds +12 oz on high heat days"
-    }
-
-    private func connectHealth() async {
-        _ = await healthKit.requestAuthorization()
     }
 
     private func rescheduleNotifications() {
@@ -1089,6 +1256,22 @@ extension ReminderSettings {
     static let hourOnlyFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "h a"
+        return f
+    }()
+}
+
+private extension Date {
+    /// "9" (12-hour clock, no leading zero) for the next-alert banner.
+    var hour12: String {
+        let h = Calendar.current.component(.hour, from: self) % 12
+        return "\(h == 0 ? 12 : h)"
+    }
+}
+
+private extension SettingsView {
+    static let shortDayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "EEE"
         return f
     }()
 }

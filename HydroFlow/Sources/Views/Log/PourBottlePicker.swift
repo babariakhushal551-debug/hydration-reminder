@@ -59,7 +59,7 @@ struct PourBottlePicker: View {
         .accessibilityValue("\(Int(unit.value(fromML: volumeML).rounded())) \(unit.symbol)")
         .accessibilityAdjustableAction { direction in
             switch direction {
-            case .increment: volumeML = min(volumeML + step, 2000)
+            case .increment: volumeML = min(volumeML + step, max(2000, maxML))
             case .decrement: volumeML = max(volumeML - step, 30)
             @unknown default: break
             }
@@ -78,14 +78,14 @@ struct PourBottlePicker: View {
 
             ZStack {
                 // Glass interior.
-                RealisticBottleShape()
+                ClassicBottleShape()
                     .fill(
                         LinearGradient(colors: [Color.white.opacity(0.30), Color.white.opacity(0.55)],
                                        startPoint: .top, endPoint: .bottom)
                     )
 
                 // Liquid level (dual wave), clipped to the bottle.
-                RealisticBottleShape()
+                ClassicBottleShape()
                     .fill(Color.clear)
                     .overlay(
                         ZStack {
@@ -100,7 +100,7 @@ struct PourBottlePicker: View {
                         .animation(dragProgress == nil ? .spring(response: 0.5, dampingFraction: 0.8) : nil,
                                    value: progress)
                     )
-                    .clipShape(RealisticBottleShape())
+                    .clipShape(ClassicBottleShape())
 
                 // Base glow.
                 Ellipse()
@@ -114,11 +114,11 @@ struct PourBottlePicker: View {
                 RoundedRectSrip()
                     .fill(LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0.05)],
                                          startPoint: .leading, endPoint: .trailing))
-                    .clipShape(RealisticBottleShape())
+                    .clipShape(ClassicBottleShape())
                     .allowsHitTesting(false)
 
                 // Glass outline.
-                RealisticBottleShape()
+                ClassicBottleShape()
                     .stroke(
                         LinearGradient(colors: [.white.opacity(0.95), .white.opacity(0.4)],
                                        startPoint: .topLeading, endPoint: .bottomTrailing),
@@ -160,11 +160,12 @@ struct PourBottlePicker: View {
     // MARK: - Mapping
 
     /// Convert a drag progress (0...1 of the bottle) to milliliters,
-    /// snapping to the unit's natural step.
+    /// snapping to the unit's natural step. Upper bound tracks the bottle's
+    /// capacity so a large bottle (e.g. 3800 ml) can actually be filled.
     private func mlFor(progress: Double) -> Double? {
         let rawML = progress * maxML
         let snapped = (rawML / step).rounded() * step
-        let clamped = min(max(snapped, 30), 2000)
+        let clamped = min(max(snapped, 30), max(2000, maxML))
         return abs(clamped - volumeML) > 1 ? clamped : nil
     }
 }

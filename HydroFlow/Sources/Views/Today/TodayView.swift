@@ -162,7 +162,7 @@ struct TodayView: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(Theme.aqua)
                 }
-                Text("Next recommended sip in \(nextSipMinutes) mins")
+                Text(rhythmText)
                     .font(FlowFont.subhead(12.5))
                     .fontWeight(.medium)
             }
@@ -450,11 +450,15 @@ struct TodayView: View {
         }
     }
 
-    private var nextSipMinutes: Int {
-        let intervalMinutes = store.reminderSettings.effectiveIntervalMinutes
+    /// BUG FIX: the rhythm pill used to count down even when reminders were
+    /// paused (off toggle or bedtime mode), promising nudges that never come.
+    private var rhythmText: String {
+        let s = store.reminderSettings
+        guard s.remindersEnabled, !s.bedtimeMode else { return "Reminders paused — enable them in Settings" }
+        let intervalMinutes = s.effectiveIntervalMinutes
         let elapsed = Date().timeIntervalSince(store.lastEntry?.date ?? Date()) / 60
         let remaining = max(0, intervalMinutes - elapsed)
-        return Int(remaining.rounded())
+        return "Next recommended sip in \(Int(remaining.rounded())) mins"
     }
 
     private var feedbackLine: String {
@@ -489,9 +493,8 @@ struct TodayView: View {
     }
 
     private func logQuick(_ vessel: QuickLogVessel) {
-        let entry = store.logDrink(vessel.beverage, volumeML: vessel.volumeML, containerName: vessel.name)
+        _ = store.logDrink(vessel.beverage, volumeML: vessel.volumeML, containerName: vessel.name)
         Feedback.sipLogged(enabled: store.reminderSettings.hapticsEnabled)
-        HealthKitManager.shared.syncEntry(entry)
         showToast("+\(Int(unit.value(fromML: vessel.volumeML).rounded())) \(unit.symbol) logged")
     }
 
@@ -505,9 +508,8 @@ struct TodayView: View {
             showToast("Nothing to repeat yet")
             return
         }
-        let entry = store.logDrink(last.beverage, volumeML: last.volumeML, containerName: last.containerName)
+        _ = store.logDrink(last.beverage, volumeML: last.volumeML, containerName: last.containerName)
         Feedback.sipLogged(enabled: store.reminderSettings.hapticsEnabled)
-        HealthKitManager.shared.syncEntry(entry)
         showToast("Repeated last sip")
     }
 

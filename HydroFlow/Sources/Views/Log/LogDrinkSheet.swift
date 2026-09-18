@@ -42,9 +42,11 @@ struct LogDrinkSheet: View {
             }
             .onAppear {
                 // Preset the sheet to the last beverage for fast repeat logging.
+                // Volume is clamped to the current bottle capacity so a huge
+                // previous drink can't overflow the (possibly smaller) bottle.
                 if let last = store.lastEntry {
                     selectedBeverage = last.beverage
-                    volumeML = last.volumeML
+                    volumeML = min(last.volumeML, store.pourBottleMaxML)
                 }
             }
         }
@@ -71,11 +73,59 @@ struct LogDrinkSheet: View {
                     .foregroundStyle(Theme.brandPrimary)
                 }
 
+                // Bottle-capacity row: tap −/+ to resize the bottle. Kept on
+                // its own line so small phones never overflow horizontally.
+                HStack {
+                    Text("Bottle size")
+                        .font(FlowFont.caption())
+                        .foregroundStyle(Theme.labelTertiary)
+                    Spacer()
+                    HStack(spacing: 6) {
+                        Button {
+                            Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                                store.pourBottleMaxML = min(max((store.pourBottleMaxML - 100).rounded(), 150), 3800)
+                                if volumeML > store.pourBottleMaxML { volumeML = store.pourBottleMaxML }
+                            }
+                        } label: {
+                            Image(systemName: "minus")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Theme.labelSecondary)
+                                .frame(width: 22, height: 22)
+                                .background(Circle().fill(Theme.azure.opacity(0.08)))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Decrease bottle capacity")
+
+                        Text("\(Int(store.pourBottleMaxML.rounded())) ml")
+                            .font(FlowFont.caption())
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Theme.brandPrimary)
+                            .monospacedDigit()
+
+                        Button {
+                            Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                                store.pourBottleMaxML = min(max((store.pourBottleMaxML + 100).rounded(), 150), 3800)
+                            }
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Theme.brandPrimary)
+                                .frame(width: 22, height: 22)
+                                .background(Circle().fill(Theme.azure.opacity(0.08)))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Increase bottle capacity")
+                    }
+                }
+
                 HStack(spacing: 14) {
                     // Interactive bottle: slide the water level to set the amount.
+                    // Capacity is user-configurable (bottle-size stepper above).
                     PourBottlePicker(
                         volumeML: $volumeML,
-                        maxML: 1000,
+                        maxML: store.pourBottleMaxML,
                         tint: color(for: selectedBeverage.tint),
                         unit: unit,
                         hapticsEnabled: store.reminderSettings.hapticsEnabled
@@ -122,16 +172,16 @@ struct LogDrinkSheet: View {
                             } label: {
                                 Text("\(display) \(unit.symbol)")
                                     .font(FlowFont.subhead())
-                                    .fontWeight(volumeML == preset ? .bold : .medium)
-                                    .foregroundStyle(volumeML == preset ? .white : Theme.labelSecondary)
+                                    .fontWeight(isPresetChipSelected && abs(volumeML - preset) < 1 ? .bold : .medium)
+                                    .foregroundStyle(isPresetChipSelected && abs(volumeML - preset) < 1 ? .white : Theme.labelSecondary)
                                     .padding(.horizontal, 13)
                                     .padding(.vertical, 7)
                                     .background(
-                                        Capsule().fill(volumeML == preset ? AnyShapeStyle(Theme.azure) : AnyShapeStyle(Theme.azure.opacity(0.06)))
+                                        Capsule().fill(isPresetChipSelected && abs(volumeML - preset) < 1 ? AnyShapeStyle(Theme.azure) : AnyShapeStyle(Theme.azure.opacity(0.06)))
                                     )
                                     .overlay(
                                         Capsule().strokeBorder(
-                                            volumeML == preset ? AnyShapeStyle(Theme.azure.opacity(0.25)) : AnyShapeStyle(Theme.azure.opacity(0.16)),
+                                            isPresetChipSelected && abs(volumeML - preset) < 1 ? AnyShapeStyle(Theme.azure.opacity(0.25)) : AnyShapeStyle(Theme.azure.opacity(0.16)),
                                             lineWidth: 0.5
                                         )
                                     )
@@ -281,6 +331,12 @@ struct LogDrinkSheet: View {
 
     private var mlCaption: String { "\(Int(volumeML.rounded())) ml" }
 
+    /// True when the selected beverage matches the last logged one and the
+    /// current volume equals its preset — used to keep the chip highlight stable.
+    private var isPresetChipSelected: Bool {
+        Self.presetsML.contains { abs($0 - volumeML) < 1 }
+    }
+
     private var volumeButtonText: String {
         "\(Int(volumeDisplayValue.rounded())) \(unit.symbol) \(selectedBeverage.displayName)"
     }
@@ -289,7 +345,7 @@ struct LogDrinkSheet: View {
 
     private func changeVolume(by deltaML: Double) {
         Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
-        let clamped = min(max(volumeML + deltaML, 30), 2000)
+        let clamped = min(max(volumeML + deltaML, 30), max(2000, store.pourBottleMaxML))
         withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
             volumeML = clamped
         }
@@ -310,9 +366,8 @@ struct LogDrinkSheet: View {
     }
 
     private func log() {
-        let entry = store.logDrink(selectedBeverage, volumeML: volumeML, containerName: nil)
+        _ = store.logDrink(selectedBeverage, volumeML: volumeML, containerName: nil)
         Feedback.sipLogged(enabled: store.reminderSettings.hapticsEnabled)
-        HealthKitManager.shared.syncEntry(entry)
 
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             justLogged = true

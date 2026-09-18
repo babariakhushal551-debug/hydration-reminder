@@ -31,10 +31,6 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
-	<key>NSHealthShareUsageDescription</key>
-	<string>HydroFlow reads nothing from Apple Health. We only write your logged water intake so your hydration data stays complete.</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>HydroFlow saves your logged drinks to Apple Health as water intake samples.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>HydroFlow sends friendly hydration nudges during your active hours.</string>
 </dict>

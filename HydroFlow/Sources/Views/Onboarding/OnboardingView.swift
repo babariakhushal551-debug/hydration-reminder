@@ -55,10 +55,24 @@ struct OnboardingView: View {
 
                     HStack(spacing: 4) {
                         Image(systemName: "lock.fill")
-                        Text("Stored locally & synced seamlessly with Apple Health")
+                        Text("Stored locally on your device")
                     }
                     .font(FlowFont.caption())
                     .foregroundStyle(Theme.labelTertiary)
+
+                    Button {
+                        requestNotifications()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "bell.badge.fill")
+                            Text("Enable Reminders & Notifications")
+                        }
+                        .font(FlowFont.subhead())
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Theme.brandPrimary)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 2)
 
                     Capsule()
                         .fill(Theme.labelTertiary.opacity(0.5))
@@ -431,6 +445,14 @@ struct OnboardingView: View {
             activity: activity, climate: climate, unit: unit
         )
         return GoalCalculator.baselineText(profile: draft)
+    }
+
+    /// Ask for notification permission right at onboarding so the daily
+    /// reminders actually have a chance to fire (previously never requested).
+    private func requestNotifications() {
+        Task { @MainActor in
+            _ = await NotificationScheduler.shared.requestAuthorization()
+        }
     }
 
     private func finish() {

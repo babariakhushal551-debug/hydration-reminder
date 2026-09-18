@@ -25,7 +25,6 @@ struct HistoryView: View {
                     ForEach(day.entries.sorted { $0.date > $1.date }) { entry in
                         EditableEntryRow(entry: entry, unit: store.profile.unit) {
                             store.deleteEntry(entry)
-                            HealthKitManager.shared.deleteEntry(entry)
                         }
                     }
                 } header: {
@@ -75,7 +74,7 @@ struct HistoryView: View {
     }()
 }
 
-/// Entry row with swipe/menu delete wired to store + HealthKit cleanup.
+/// Entry row with swipe/menu delete wired to the store.
 private struct EditableEntryRow: View {
     let entry: WaterEntry
     let unit: VolumeUnit

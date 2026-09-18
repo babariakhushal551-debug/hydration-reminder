@@ -250,6 +250,15 @@
     </div>
   </div>
 
+  <!-- BOTTLE SIZE (Log-sheet capacity) -->
+  <div class="modal" id="bottle-size-sheet">
+    <div class="modal-panel">
+      <div class="modal-title">Bottle Capacity</div>
+      <div id="bottle-size-body"></div>
+      <button class="btn-primary" onclick="closeBottleSizeEditor()">Done</button>
+    </div>
+  </div>
+
   <!-- CONTAINER EDIT -->
   <div class="modal" id="preset-edit-sheet">
     <div class="modal-panel">
@@ -265,7 +274,7 @@
         <div class="cap" style="text-align:center">Volume in <span id="preset-unit">oz</span> (ml stored internally)</div>
       </div>
       <button class="btn-primary" onclick="savePreset()" style="margin-top:16px">Save Container</button>
-      <button class="modal-close" onclick="removeContainer()" style="color:var(--label2)">🗑 Remove Container</button>
+      <button class="modal-close" onclick="requestDeleteContainer(editContainerId)" style="color:var(--label2)">🗑 Delete Container</button>
       <button class="modal-close" onclick="closePresetEdit()">Cancel</button>
     </div>
   </div>

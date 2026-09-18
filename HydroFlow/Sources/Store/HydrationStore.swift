@@ -20,6 +20,10 @@ final class HydrationStore: ObservableObject {
     /// User-editable quick-log vessels (Settings → Container Presets).
     @Published var containerPresets: [ContainerPreset] { didSet { scheduleSave() } }
 
+    /// Full-bottle capacity (ml) for the Log-sheet pour picker. Customizable
+    /// per user request — was hardcoded at 1000 ml.
+    @Published var pourBottleMaxML: Double { didSet { scheduleSave() } }
+
     // MARK: - Persistence
 
     private let queue = DispatchQueue(label: "com.hydroflow.store", qos: .utility)
@@ -34,6 +38,7 @@ final class HydrationStore: ObservableObject {
         var reminderSettings: ReminderSettings
         var hasCompletedOnboarding: Bool
         var containerPresets: [ContainerPreset]?
+        var pourBottleMaxML: Double?
         var schemaVersion: Int = 1
     }
 
@@ -51,11 +56,13 @@ final class HydrationStore: ObservableObject {
             reminderSettings = state.reminderSettings
             hasCompletedOnboarding = state.hasCompletedOnboarding
             containerPresets = state.containerPresets ?? ContainerPreset.defaults
+            pourBottleMaxML = (state.pourBottleMaxML ?? 1000).clampedBottleCapacity
         } else {
             profile = UserProfile()
             reminderSettings = ReminderSettings()
             hasCompletedOnboarding = false
             containerPresets = ContainerPreset.defaults
+            pourBottleMaxML = 1000
         }
 
         refreshWeatherBonus(now: now())
@@ -187,7 +194,8 @@ final class HydrationStore: ObservableObject {
             profile: profile,
             reminderSettings: reminderSettings,
             hasCompletedOnboarding: hasCompletedOnboarding,
-            containerPresets: containerPresets
+            containerPresets: containerPresets,
+            pourBottleMaxML: pourBottleMaxML
         )
         guard let data = try? encoder.encode(state) else { return }
         // Atomic write prevents corruption if the app is killed mid-save.

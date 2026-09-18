@@ -5,7 +5,6 @@ struct HydroFlowApp: App {
     @StateObject private var store = HydrationStore()
     @StateObject private var notificationScheduler = NotificationScheduler.shared
     @StateObject private var soundManager = SoundManager.shared
-    @StateObject private var healthKit = HealthKitManager.shared
 
     init() {
         // Tab bar: translucent liquid-glass chrome over scrolling content
@@ -39,7 +38,6 @@ struct HydroFlowApp: App {
                 .environmentObject(store)
                 .environmentObject(notificationScheduler)
                 .environmentObject(soundManager)
-                .environmentObject(healthKit)
                 .tint(Theme.azure)
                 .task {
                     // Refresh weather bonus daily; reschedule nudges for today

@@ -10,7 +10,8 @@ const state = {
   reminders: true, intervalH: 1.5, customIntervalMin: null,
   activeStart: 8, activeEnd: 22,
   sound: 'default', soundVolume: 0.8,
-  bedtime: true, weather: true, haptics: true,
+  bedtime: false, weather: true, haptics: true,
+  pourMax: 1000,                    // Log-sheet bottle capacity (ml), user-configurable
 };
 const baseGoal = () => state.customGoalML ?? 2660;
 let bevCatalog = [
@@ -27,13 +28,14 @@ let bevCatalog = [
   { id:'alcohol',   name:'Alcohol',           factor:0.30, preset:355, icon:'🍷', tint:'#5856D6' },
   { id:'custom',    name:'Custom Beverage',   factor:1.00, preset:240, icon:'🧪', tint:'#7c4dd4' },
 ];
-let containers = [
+const defaultContainers = () => [
   { id: uid(), name:'Cup',    bev:'water',   ml:240, icon:'🥛' },
   { id: uid(), name:'Glass',  bev:'water',   ml:355, icon:'🫗' },
   { id: uid(), name:'Mug',    bev:'tea',     ml:473, icon:'🍵' },
   { id: uid(), name:'Bottle', bev:'water',   ml:710, icon:'🍶' },
   { id: uid(), name:'Jug',    bev:'electro', ml:950, icon:'🧺' },
 ];
+let containers = defaultContainers();
 const vessels = containers; // today shelf renders from the editable presets
 
 // ---------- Helpers ----------
@@ -218,9 +220,14 @@ function renderSheet() {
         <span class="eyebrow" style="color:var(--label2)">TARGET INTAKE</span>
         <span class="cap" style="color:var(--brand);font-weight:700">💧 Real-time Fluid</span>
       </div>
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;padding:0 0 4px">
+        <button class="cap-b" onclick="nudgeBottleMax(-1)" style="background:rgba(0,122,255,.08);border:none;border-radius:99px;padding:3px 9px;cursor:pointer">−</button>
+        <span class="cap-b" style="color:var(--brand)">Bottle ${state.pourMax} ml</span>
+        <button class="cap-b" onclick="nudgeBottleMax(1)" style="background:rgba(0,122,255,.08);border:none;border-radius:99px;padding:3px 9px;cursor:pointer">+</button>
+      </div>
       <div style="display:flex;align-items:center;justify-content:center;gap:20px;padding:8px 0">
         <div class="pour-bottle" id="pour-bottle">
-          <div class="water" id="pour-water" style="height:${(26 + Math.min(sheetML / 1000, 1) * 72).toFixed(1)}%"></div>
+          <div class="water" id="pour-water" style="height:${(26 + Math.min(sheetML / state.pourMax, 1) * 72).toFixed(1)}%"></div>
           <div class="pour-center">
             <div class="num">${fmt(sheetML)}<small> ${unitSym()}</small><div class="cap-b" style="color:var(--brand)">${Math.round(sheetML)} ml</div></div>
             <div class="hint">DRAG TO POUR</div>
@@ -264,7 +271,7 @@ function renderSheet() {
 function nudge(dir) {
   const step = state.unit === 'oz' ? ML_PER_OZ : 50;
   haptic();
-  sheetML = Math.min(Math.max(sheetML + dir * step, 30), 2000);
+  sheetML = Math.min(Math.max(sheetML + dir * step, 30), Math.max(2000, state.pourMax));
   renderSheet();
 }
 function setPreset(p) { haptic(); sheetML = p; renderSheet(); }
@@ -285,8 +292,8 @@ function setupPourDrag() {
     const rect = bottle.getBoundingClientRect();
     const raw = 1 - (clientY - rect.top) / rect.height;   // top = full
     const clamped = Math.min(Math.max(raw, 0), 1);
-    const snapped = Math.round((clamped * 1000) / step) * step;
-    sheetML = Math.min(Math.max(snapped, 30), 2000);
+    const snapped = Math.round((clamped * state.pourMax) / step) * step;
+    sheetML = Math.min(Math.max(snapped, 30), Math.max(2000, state.pourMax));
     haptic();
     renderSheet();
   };
@@ -680,11 +687,11 @@ function renderSettings() {
         <div style="flex:1"><div class="body-b" style="font-size:16px">Units</div><div class="cap">Ounces or milliliters everywhere</div></div>
         <b style="color:var(--brand)">${unitSym().toUpperCase()}</b><span class="cap">›</span></div>
       <div class="row" onclick="openPresetsEditor()" style="cursor:pointer"><div class="tile" style="background:rgba(88,86,214,.14)">🥛</div>
-        <div style="flex:1"><div class="body-b" style="font-size:16px">Container Presets</div><div class="cap">${containers.length} vessels on the Today shelf</div></div>
+        <div style="flex:1"><div class="body-b" style="font-size:16px">Container Presets</div><div class="cap">${containers.length} vessels · tap to edit or delete</div></div>
         <span class="cap">›</span></div>
-      <div class="row"><div class="tile" style="background:rgba(255,59,48,.12)">❤️</div>
-        <div style="flex:1"><div class="body-b" style="font-size:16px">Apple Health Sync</div><div class="cap">Available in the native iOS app</div></div>
-        <span class="cap-b" style="color:#006f69">● Native only</span><span class="cap">›</span></div>
+      <div class="row" onclick="openBottleSizeEditor()" style="cursor:pointer"><div class="tile" style="background:rgba(0,199,190,.14)">🍶</div>
+        <div style="flex:1"><div class="body-b" style="font-size:16px">Log-Sheet Bottle Size</div><div class="cap">Full capacity of the pour bottle</div></div>
+        <b style="color:var(--brand);font-size:13px">${fmt(state.pourMax)} ml</b><span class="cap">›</span></div>
       <div class="row" onclick="resetHistory()" style="cursor:pointer"><div class="tile" style="background:rgba(88,86,214,.14)">♻️</div>
         <div style="flex:1"><div class="body-b" style="font-size:16px">Reset Preview Data</div><div class="cap">Clear all logged entries in this preview</div></div>
         <span class="cap">›</span></div>
@@ -809,8 +816,39 @@ function renderPresetsEditor() {
     <div class="row" onclick="editContainer('${c.id}')" style="cursor:pointer">
       <div class="tile" style="background:rgba(0,122,255,.10);width:34px;height:34px">${c.icon}</div>
       <div style="flex:1"><div class="body-b" style="font-size:15px">${c.name}</div><div class="cap">${fmt(c.ml)} ${unitSym()}</div></div>
-      <span class="cap">›</span>
+      <button class="cap-b" onclick="event.stopPropagation();requestDeleteContainer('${c.id}')" title="Delete" style="background:rgba(255,59,48,.10);color:#ff3b30;border-radius:8px;padding:5px 8px;border:none;cursor:pointer">🗑</button>
     </div>`).join('');
+}
+
+// Log-sheet bottle size sheet (customizable bottle capacity).
+function openBottleSizeEditor() {
+  renderBottleSizeEditor();
+  $('#bottle-size-sheet').style.display = 'flex';
+  requestAnimationFrame(() => $('#bottle-size-sheet').classList.add('open'));
+}
+function closeBottleSizeEditor() {
+  $('#bottle-size-sheet').classList.remove('open');
+  setTimeout(() => { $('#bottle-size-sheet').style.display = 'none'; }, 250);
+}
+function renderBottleSizeEditor() {
+  $('#bottle-size-body').innerHTML = `
+    <div class="cap" style="text-align:center;padding:0 12px 8px">Sets what a full bottle means on the Log Hydration sheet. Pick a value close to your real bottle.</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:18px;padding:6px 0 10px">
+      <button class="stepper-btn" onclick="nudgeBottleMax(-1)">−</button>
+      <div style="text-align:center;min-width:110px">
+        <div style="font-size:34px;font-weight:800;line-height:1">${state.pourMax}</div>
+        <div class="cap-b" style="color:var(--label2)">ml capacity</div>
+      </div>
+      <button class="stepper-btn" onclick="nudgeBottleMax(1)">+</button>
+    </div>
+    <input type="range" min="150" max="3800" step="50" value="${state.pourMax}" style="width:100%"
+           oninput="bottleMaxSlide(this.value)" onchange="renderBottleSizeEditor()">
+    <div style="display:flex;justify-content:space-between;padding:0 6px 2px">
+      <span class="cap">150 ml</span><span class="cap">3800 ml</span>
+    </div>
+    <button class="btn-grad" onclick="closeBottleSizeEditor();renderSettings();toast('Bottle capacity saved')">Save</button>
+    <button class="cap-b" style="width:100%;padding:9px 0;background:none;border:none;color:var(--brand);cursor:pointer"
+            onclick="state.pourMax=1000;if(sheetML>1000)sheetML=1000;renderBottleSizeEditor();renderSheet()">Reset to 1000 ml</button>`;
 }
 function editContainer(id) {
   editContainerId = id;
@@ -847,10 +885,32 @@ function addContainer() {
   haptic(); renderPresetsEditor(); renderAll();
 }
 function removeContainer() {
-  if (containers.length <= 1) { toast('Keep at least one container'); return; }
   containers = containers.filter(c => c.id !== editContainerId);
+  if (containers.length === 0) containers = defaultContainers();
   haptic(); toast('Container removed');
   closePresetEdit(); renderAll();
+}
+
+// Delete a container straight from the presets list with confirmation.
+function requestDeleteContainer(id) {
+  const c = containers.find(x => x.id === id);
+  if (!c) return;
+  editContainerId = id;
+  if (confirm(`Delete "${c.name}"? It will be removed from the Today quick-log shelf.`)) {
+    removeContainer();
+  }
+}
+
+// Log-sheet bottle capacity editor (mirrors store.pourBottleMaxML).
+function nudgeBottleMax(dir) {
+  state.pourMax = Math.min(Math.max(state.pourMax + dir * 100, 150), 3800);
+  if (sheetML > state.pourMax) sheetML = state.pourMax;
+  haptic(); renderSheet(); renderSettings();
+}
+function bottleMaxSlide(val) {
+  state.pourMax = Math.round(Number(val) / 50) * 50;
+  if (sheetML > state.pourMax) sheetML = state.pourMax;
+  renderSheet(); renderSettings();
 }
 
 function cycleUnit() {

@@ -24,6 +24,32 @@ final class NotificationScheduler: ObservableObject {
         return granted
     }
 
+    /// Make sure we have permission to actually deliver notifications.
+    ///
+    /// BUG FIX: previously nothing in the app ever called `requestAuthorization`,
+    /// so iOS never showed the permission prompt and every scheduled request was
+    /// silently dropped by the system. This now asks when undetermined and falls
+    /// back to provisional (quiet) delivery so time-sensitive nudges still work.
+    @MainActor
+    @discardableResult
+    func ensureAuthorization() async -> Bool {
+        await refreshAuthorizationStatus()
+        switch authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            return true
+        case .notDetermined:
+            if await requestAuthorization() { return true }
+            // User declined the prompt — try quiet provisional delivery so
+            // time-sensitive nudges can still arrive in Notification Center.
+            _ = (try? await center.requestAuthorization(options: [.alert, .sound, .badge, .provisional])) ?? false
+            await refreshAuthorizationStatus()
+            return authorizationStatus == .authorized || authorizationStatus == .provisional
+        default:
+            // .denied — user must enable in Settings; nothing we can do.
+            return false
+        }
+    }
+
     /// Read the current authorization state (called at launch).
     @MainActor
     func refreshAuthorizationStatus() async {
@@ -66,6 +92,10 @@ final class NotificationScheduler: ObservableObject {
 
         guard settings.remindersEnabled, !settings.bedtimeMode else { return }
 
+        // Requests are useless without permission: ask/upgrade first, and if
+        // the user has denied, stop scheduling (Settings shows how to fix).
+        guard await ensureAuthorization() else { return }
+
         // Resolve the notification sound up-front (installs system files if needed).
         let sound: UNNotificationSound
         if let soundManager {
@@ -76,7 +106,12 @@ final class NotificationScheduler: ObservableObject {
             sound = .default
         }
 
-        for (index, time) in Self.plannedReminderTimes(settings: settings).enumerated() {
+        // iOS allows at most 64 pending local notification requests; a dense
+        // cadence (e.g. 10-min interval over 24 h = 144 slots) would silently
+        // drop everything past the limit — so cap the schedule ourselves.
+        let schedule = Self.plannedReminderTimes(settings: settings).prefix(64)
+
+        for (index, time) in schedule.enumerated() {
             var comps = DateComponents()
             comps.hour = time.hour
             comps.minute = time.minute
@@ -86,6 +121,9 @@ final class NotificationScheduler: ObservableObject {
             content.body = Self.messages[index % Self.messages.count]
             content.sound = sound
             content.categoryIdentifier = "REMINDER"
+            // With 90-min cadence the message list wraps after 8 slots; a
+            // unique thread per slot keeps notifications stacking cleanly.
+            content.threadIdentifier = "hydroflow-\(time.hour)-\(time.minute)"
 
             let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
             let request = UNNotificationRequest(

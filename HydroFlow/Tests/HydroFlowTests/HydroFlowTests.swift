@@ -194,6 +194,33 @@ final class HydroFlowTests: XCTestCase {
         XCTAssertTrue(NotificationScheduler.plannedReminderTimes(settings: s).isEmpty)
     }
 
+    /// REGRESSION: bedtimeMode used to default to `true`, silently disabling
+    /// every reminder out of the box. It must default to false now.
+    func testBedtimeModeDefaultsOff() {
+        let s = ReminderSettings()
+        XCTAssertFalse(s.bedtimeMode, "bedtimeMode must default OFF (was silently killing all reminders)")
+    }
+
+    /// REGRESSION: with defaults (reminders on, bedtime off) a real schedule
+    /// must be planned for the 8:00–22:00 window.
+    func testDefaultSettingsPlanRealSchedule() {
+        let s = ReminderSettings()
+        XCTAssertTrue(s.remindersEnabled)
+        XCTAssertFalse(s.bedtimeMode)
+        let times = NotificationScheduler.plannedReminderTimes(settings: s)
+        XCTAssertFalse(times.isEmpty, "Default settings must produce a non-empty schedule")
+    }
+
+    /// The persisted-state decoder must keep bedtimeMode OFF for legacy files
+    /// that never wrote the key.
+    func testReminderSettingsLegacyDecodeKeepsBedtimeOff() throws {
+        let json = "{}"
+        let data = try XCTUnwrap(json.data(using: .utf8))
+        let s = try JSONDecoder().decode(ReminderSettings.self, from: data)
+        XCTAssertFalse(s.bedtimeMode)
+        XCTAssertTrue(s.remindersEnabled)
+    }
+
     func testDisabledRemindersSuppressSchedule() {
         var s = ReminderSettings()
         s.remindersEnabled = false
@@ -257,6 +284,43 @@ final class HydroFlowTests: XCTestCase {
         let store = HydrationStore(fileURL: url)
         XCTAssertEqual(store.containerPresets.count, ContainerPreset.defaults.count)
         XCTAssertEqual(store.quickLogVessels.count, ContainerPreset.defaults.count)
+    }
+
+    // MARK: - Bottle capacity (user-configurable pour bottle)
+
+    func testPourBottleCapacityDefaultsPersistsAndClamps() {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("bottle-\(UUID().uuidString).json")
+        let store = HydrationStore(fileURL: url)
+        XCTAssertEqual(store.pourBottleMaxML, 1000, accuracy: 0.5, "Capacity defaults to 1000 ml")
+
+        store.pourBottleMaxML = 2000
+        store.flushSaves()
+        let reloaded = HydrationStore(fileURL: url)
+        XCTAssertEqual(reloaded.pourBottleMaxML, 2000, accuracy: 0.5, "Capacity must persist")
+
+        // Clamp: 150–3800 ml sane band.
+        XCTAssertEqual((99_999.0).clampedBottleCapacity, 3800, accuracy: 0.5)
+        XCTAssertEqual((10.0).clampedBottleCapacity, 150, accuracy: 0.5)
+    }
+
+    // MARK: - Container preset deletion
+
+    func testContainerPresetDeletion() {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("preset-del-\(UUID().uuidString).json")
+        let store = HydrationStore(fileURL: url)
+        XCTAssertEqual(store.containerPresets.count, 5)
+
+        // Delete one preset by identity.
+        let victim = store.containerPresets[0]
+        store.containerPresets.removeAll { $0.id == victim.id }
+        XCTAssertEqual(store.containerPresets.count, 4)
+        store.flushSaves()
+
+        let reloaded = HydrationStore(fileURL: url)
+        XCTAssertEqual(reloaded.containerPresets.count, 4, "Deletion must persist")
+        XCTAssertFalse(reloaded.containerPresets.contains { $0.id == victim.id })
     }
 
     // MARK: - VolumeUnit

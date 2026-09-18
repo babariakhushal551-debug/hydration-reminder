@@ -26,8 +26,6 @@ targets:
       properties:
         CFBundleDisplayName: HydroFlow
         UILaunchScreen: {}
-        NSHealthShareUsageDescription: HydroFlow reads nothing from Apple Health. We only write your logged water intake so your hydration data stays complete.
-        NSHealthUpdateUsageDescription: HydroFlow saves your logged drinks to Apple Health as water intake samples.
         NSUserNotificationsUsageDescription: HydroFlow sends friendly hydration nudges during your active hours.
         ITSAppUsesNonExemptEncryption: false
     settings:

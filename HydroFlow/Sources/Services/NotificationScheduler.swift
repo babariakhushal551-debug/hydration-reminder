@@ -85,13 +85,22 @@ final class NotificationScheduler: ObservableObject {
 
     /// Rebuild the full reminder schedule from settings.
     /// Call after any settings change, app launch, or permission grant.
-    /// MainActor: resolves the sound through SoundManager (actor-isolated).
+    ///
+    /// Deliberately synchronous (call sites include onChange closures) and
+    /// hops to an async context internally to resolve permissions first —
+    /// a sync function cannot itself `await`.
     @MainActor
     func reschedule(settings: ReminderSettings, soundManager: SoundManager? = nil) {
         center.removeAllPendingNotificationRequests()
 
         guard settings.remindersEnabled, !settings.bedtimeMode else { return }
 
+        Task { await scheduleAfterPermissionCheck(settings: settings, soundManager: soundManager) }
+    }
+
+    /// Async body of `reschedule`: ensures permission, then adds requests.
+    @MainActor
+    private func scheduleAfterPermissionCheck(settings: ReminderSettings, soundManager: SoundManager?) async {
         // Requests are useless without permission: ask/upgrade first, and if
         // the user has denied, stop scheduling (Settings shows how to fix).
         guard await ensureAuthorization() else { return }

@@ -82,18 +82,6 @@ struct TodayView: View {
 
             Spacer(minLength: 8)
 
-            // Stitch header has exactly two round icon buttons: calendar and
-            // (in place of the mockup's bell) the appearance quick toggle.
-            NavigationLink { AnalyticsView() } label: {
-                Image(systemName: "calendar_month")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Theme.labelPrimary)
-                    .frame(width: 36, height: 36)
-                    .background(Circle().fill(Theme.card))
-                    .overlay(Circle().strokeBorder(Theme.hairline.opacity(0.5), lineWidth: 0.5))
-            }
-            .buttonStyle(.plain)
-
             // Light/Dark quick toggle (cycles System → Light → Dark).
             Button {
                 Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)

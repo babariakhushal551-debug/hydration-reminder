@@ -7,29 +7,40 @@ struct HydroFlowApp: App {
     @StateObject private var soundManager = SoundManager.shared
 
     init() {
-        // Tab bar: translucent liquid-glass chrome over scrolling content
-        // (WhatsApp-style. `configureWithDefaultBackground` keeps the system
-        // blur material; scrollEdgeAppearance keeps it glassy at the top).
-        let tabAppearance = UITabBarAppearance()
-        tabAppearance.configureWithDefaultBackground()
-        tabAppearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        tabAppearance.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.72)
-        tabAppearance.shadowColor = .clear
-        UITabBar.appearance().standardAppearance = tabAppearance
-        UITabBar.appearance().scrollEdgeAppearance = tabAppearance
+        if #available(iOS 26.0, *) {
+            // iOS 26 Liquid Glass: the system now renders WhatsApp/Apple-Health
+            // style translucent glass chrome for navigation and tab bars
+            // automatically — floating glass pills that morph on push, tint
+            // from the content behind them, and blur at the scroll edge.
+            // Setting ANY custom UITabBarAppearance/UINavigationBarAppearance
+            // here would opt the bars OUT of the system material (custom
+            // backgrounds are drawn over the glass), so we deliberately
+            // configure nothing on this path.
+        } else {
+            // Pre-iOS 26: simulate the same liquid-glass look with the
+            // system blur material so older devices keep a consistent,
+            // translucent chrome (WhatsApp-style tab bar).
+            let tabAppearance = UITabBarAppearance()
+            tabAppearance.configureWithDefaultBackground()
+            tabAppearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+            tabAppearance.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.72)
+            tabAppearance.shadowColor = .clear
+            UITabBar.appearance().standardAppearance = tabAppearance
+            UITabBar.appearance().scrollEdgeAppearance = tabAppearance
 
-        // Navigation bars: same liquid-glass treatment (systemUltraThinMaterial
-        // with a translucent tint), transparent at the scroll edge.
-        let navAppearance = UINavigationBarAppearance()
-        navAppearance.configureWithDefaultBackground()
-        navAppearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        navAppearance.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.60)
-        navAppearance.shadowColor = .clear
-        navAppearance.titleTextAttributes = [.font: UIFont.systemFont(ofSize: 17, weight: .semibold)]
-        navAppearance.largeTitleTextAttributes = [.font: UIFont.systemFont(ofSize: 34, weight: .bold)]
-        UINavigationBar.appearance().standardAppearance = navAppearance
-        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
-        UINavigationBar.appearance().compactAppearance = navAppearance
+            // Navigation bars: same translucent glass treatment, transparent
+            // at the scroll edge.
+            let navAppearance = UINavigationBarAppearance()
+            navAppearance.configureWithDefaultBackground()
+            navAppearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+            navAppearance.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.60)
+            navAppearance.shadowColor = .clear
+            navAppearance.titleTextAttributes = [.font: UIFont.systemFont(ofSize: 17, weight: .semibold)]
+            navAppearance.largeTitleTextAttributes = [.font: UIFont.systemFont(ofSize: 34, weight: .bold)]
+            UINavigationBar.appearance().standardAppearance = navAppearance
+            UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+            UINavigationBar.appearance().compactAppearance = navAppearance
+        }
     }
 
     var body: some Scene {

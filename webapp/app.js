@@ -351,7 +351,6 @@ function renderToday() {
         <button onclick="quickAdjustGoal(250)" style="width:26px;height:26px;border-radius:50%;border:none;background:var(--azure);color:#fff;font-weight:800;cursor:pointer">+</button>
       </div>
       <button class="tile" style="background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.07)" onclick="cycleAppearance()" title="Light / Dark / System">${state.appearance === 'system' ? '🌓' : state.appearance === 'light' ? '☀️' : '🌙'}</button>
-      <button class="tile" style="background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.07)" onclick="showTab('analytics')">📅</button>
     </div>
 
     <div class="card" style="background:linear-gradient(90deg,rgba(0,122,255,.10),rgba(0,199,190,.10),var(--card));display:flex;align-items:center;gap:10px">

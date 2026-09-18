@@ -186,3 +186,100 @@ struct NavigationRow<Trailing: View>: View {
         .contentShape(Rectangle())
     }
 }
+
+// MARK: - Floating glass tab bar
+
+/// One item in the floating glass tab bar.
+struct FloatingTabItem: Identifiable {
+    let id: String
+    let symbol: String
+    let label: String
+}
+
+/// Dribbble-style detached Liquid Glass tab bar: a single frosted capsule
+/// floating above the safe area with content scrolling behind it, an active
+/// item lifted by a sliding frosted pill, and a soft azure-tinted drop shadow.///
+/// Uses the native `.bar` material on iOS 26+ so it inherits the system
+/// Liquid Glass rendering; falls back to systemUltraThinMaterial below.
+struct FloatingGlassTabBar: View {
+    let items: [FloatingTabItem]
+    @Binding var selection: String
+    var onAdd: (() -> Void)? = nil
+
+    @Namespace private var pillNamespace
+    @State private var barAppeared = false
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(items) { item in
+                tabButton(item)
+            }
+        }
+        .padding(5)
+        .background(
+            // Frosted glass capsule (.bar inherits the system Liquid Glass
+            // material on iOS 26+).
+            Capsule().fill(Material.bar)
+        )
+        .overlay(
+            Capsule().strokeBorder(Color.white.opacity(0.35), lineWidth: 0.5)
+        )
+        .shadow(color: Theme.azure.opacity(0.16), radius: 18, x: 0, y: 10)
+        .shadow(color: .black.opacity(0.10), radius: 8, x: 0, y: 3)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 6)
+        .scaleEffect(barAppeared ? 1 : 0.9)
+        .opacity(barAppeared ? 1 : 0)
+        .offset(y: barAppeared ? 0 : 30)
+        .animation(.spring(response: 0.5, dampingFraction: 0.75), value: barAppeared)
+        .onAppear {
+            if !barAppeared {
+                barAppeared = true
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Tab bar")
+    }
+
+    @ViewBuilder
+    private func tabButton(_ item: FloatingTabItem) -> some View {
+        let isSelected = selection == item.id
+        Button {
+            guard selection != item.id else { return }
+            Feedback.tick(enabled: true)
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                if item.id == "add" {
+                    onAdd?()
+                } else {
+                    selection = item.id
+                }
+            }
+        } label: {
+            VStack(spacing: 3) {
+                Image(systemName: item.symbol)
+                    .font(.system(size: 17, weight: .semibold))
+                    .symbolRenderingMode(.hierarchical)
+                Text(item.label)
+                    .font(FlowFont.caption(9.5))
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+            }
+            .foregroundStyle(isSelected ? Theme.azure : Theme.labelSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 9)
+            .background {
+                if isSelected {
+                    // Sliding active pill (matchedGeometryEffect).
+                    Capsule()
+                        .fill(Color.white.opacity(0.92))
+                        .overlay(Capsule().strokeBorder(Theme.azure.opacity(0.15), lineWidth: 0.5))
+                        .shadow(color: Theme.azure.opacity(0.22), radius: 6, y: 2)
+                        .matchedGeometryEffect(id: "active-pill", in: pillNamespace)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(item.label)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}

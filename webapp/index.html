@@ -19,7 +19,8 @@
     --label1:#f2f2f7; --label2:#9a9aa5; --label3:#6a6a75;
     --brand:#4da3ff;
   }
-  body.dark .navbar{background:rgba(10,10,16,.78);border-top-color:rgba(255,255,255,.08)}
+  body.dark .navbar{background:rgba(16,16,22,.78);border-color:rgba(255,255,255,.10);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  body.dark .navbar button.on{background:#26262e;box-shadow:0 2px 8px rgba(0,0,0,.4)}
   body.dark .vessel .vi{background:#1d1d24;box-shadow:0 1px 3px rgba(0,0,0,.4)}
   body.dark .seg button.on{background:#26262e;color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.4)}
   body.dark .goal-line span{background:#12233b}
@@ -47,9 +48,10 @@
   .big small{font-size:15px;color:var(--label2);font-weight:700}
   .pbar{height:8px;border-radius:99px;background:rgba(0,122,255,.12);overflow:hidden;margin:10px 0}
   .pbar i{display:block;height:100%;background:var(--grad);border-radius:99px;transition:width .6s cubic-bezier(.32,.72,.28,1)}
-  .navbar{position:absolute;left:0;right:0;bottom:0;display:flex;background:rgba(255,255,255,.72);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-top:.5px solid rgba(0,0,0,.06);padding:8px 6px calc(14px + env(safe-area-inset-bottom));z-index:50}
-  .navbar button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:700;color:var(--label3);cursor:pointer;font-family:inherit}
-  .navbar button.on{color:var(--azure)}
+  /* Floating glass tab bar (detached capsule, content scrolls behind) */
+  .navbar{position:absolute;left:16px;right:16px;bottom:14px;display:flex;background:rgba(255,255,255,.72);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:.5px solid rgba(255,255,255,.5);border-radius:999px;padding:6px;box-shadow:0 10px 30px rgba(0,90,180,.18),0 3px 10px rgba(0,0,0,.08);z-index:50}
+  .navbar button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:700;color:var(--label3);cursor:pointer;font-family:inherit;padding:7px 0;border-radius:999px;transition:background .25s,color .25s,box-shadow .25s}
+  .navbar button.on{color:var(--azure);background:rgba(255,255,255,.92);box-shadow:0 2px 8px rgba(0,122,255,.18)}
   .navbar .ic{font-size:20px;filter:grayscale(1) opacity(.55)}
   .navbar button.on .ic{filter:none}
   .bottle-row{display:flex;align-items:center;justify-content:center;gap:22px;padding:6px 0}

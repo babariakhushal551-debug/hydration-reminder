@@ -101,48 +101,103 @@ struct MainTabView: View {
     @EnvironmentObject var store: HydrationStore
     @Binding var showingLogSheet: Bool
 
-    @State private var selection: AppTab = .today
+    /// Single source of truth for the visible tab (String ids drive both the
+    /// floating glass bar and, via `appTabBinding`, the TabView).
+    @State private var tabSelection: String = "today"
+
+    /// Items for the floating glass tab bar.
+    static let tabItems: [FloatingTabItem] = [
+        FloatingTabItem(id: "today", symbol: "drop.fill", label: "Today"),
+        FloatingTabItem(id: "add", symbol: "plus.circle.fill", label: "Add"),
+        FloatingTabItem(id: "analytics", symbol: "chart.xyaxis.line", label: "Analytics"),
+        FloatingTabItem(id: "history", symbol: "clock.arrow.circlepath", label: "History"),
+        FloatingTabItem(id: "settings", symbol: "gearshape.fill", label: "Settings")
+    ]
 
     var body: some View {
-        TabView(selection: $selection) {
-            NavigationStack {
-                TodayView(showingLogSheet: $showingLogSheet)
-            }
-            .tabItem { Label("Today", systemImage: "drop.fill") }
-            .tag(AppTab.today)
+        ZStack {
+            TabView(selection: appTabBinding) {
+                NavigationStack {
+                    TodayView(showingLogSheet: $showingLogSheet)
+                }
+                .tabItem { Label("Today", systemImage: "drop.fill") }
+                .tag(AppTab.today)
 
-            Color.clear
-                .tabItem { Label("Add", systemImage: "plus.circle.fill") }
-                .tag(AppTab.add)
+                Color.clear
+                    .tabItem { Label("Add", systemImage: "plus.circle.fill") }
+                    .tag(AppTab.add)
 
-            NavigationStack {
-                AnalyticsView()
-            }
-            .tabItem { Label("Analytics", systemImage: "chart.xyaxis.line") }
-            .tag(AppTab.analytics)
+                NavigationStack {
+                    AnalyticsView()
+                }
+                .tabItem { Label("Analytics", systemImage: "chart.xyaxis.line") }
+                .tag(AppTab.analytics)
 
-            NavigationStack {
-                HistoryView()
-            }
-            .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
-            .tag(AppTab.history)
+                NavigationStack {
+                    HistoryView()
+                }
+                .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
+                .tag(AppTab.history)
 
-            NavigationStack {
-                SettingsView()
+                NavigationStack {
+                    SettingsView()
+                }
+                .tabItem { Label("Settings", systemImage: "gearshape.fill") }
+                .tag(AppTab.settings)
             }
-            .tabItem { Label("Settings", systemImage: "gearshape.fill") }
-            .tag(AppTab.settings)
-        }
-        .onChange(of: selection) { _, newTab in
-            if newTab == .add {
-                // The "+" tab opens the Log Hydration sheet, then snaps back.
-                showingLogSheet = true
-                selection = .today
+            // The system tab bar is hidden; the floating glass capsule below
+            // is the visible chrome (Dribbble-style detached Liquid Glass).
+            .toolbar(.hidden, for: .tabBar)
+
+            VStack(spacing: 0) {
+                Spacer()
+                FloatingGlassTabBar(
+                    items: Self.tabItems,
+                    selection: $tabSelection,
+                    onAdd: { showingLogSheet = true }
+                )
             }
+            // Stay pinned above the home indicator; never dodge the keyboard.
+            .ignoresSafeArea(.keyboard, edges: .bottom)
         }
         .sheet(isPresented: $showingLogSheet) {
             LogDrinkSheet()
         }
         .modifier(GoalCelebrationModifier())
+    }
+
+    /// Single source of truth: the floating bar's String selection drives the
+    /// TabView. "add" never becomes a selection — it presents the log sheet.
+    private var appTabBinding: Binding<AppTab> {
+        Binding(
+            get: { Self.tab(for: tabSelection) ?? .today },
+            set: { newTab in
+                if newTab == .add {
+                    showingLogSheet = true
+                } else {
+                    tabSelection = Self.string(for: newTab)
+                }
+            }
+        )
+    }
+
+    private static func string(for tab: AppTab) -> String {
+        switch tab {
+        case .today: return "today"
+        case .add: return "add"
+        case .analytics: return "analytics"
+        case .history: return "history"
+        case .settings: return "settings"
+        }
+    }
+
+    private static func tab(for id: String) -> AppTab? {
+        switch id {
+        case "today": return .today
+        case "analytics": return .analytics
+        case "history": return .history
+        case "settings": return .settings
+        default: return nil
+        }
     }
 }

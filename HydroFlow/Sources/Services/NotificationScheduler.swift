@@ -140,7 +140,12 @@ final class NotificationScheduler: ObservableObject {
                 content: content,
                 trigger: trigger
             )
-            center.add(request)
+            do {
+                try await center.add(request)
+            } catch {
+                // Non-fatal (e.g. permission raced mid-schedule); the rest of
+                // the requests still land.
+            }
         }
     }
 

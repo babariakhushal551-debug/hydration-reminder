@@ -62,7 +62,7 @@ struct SettingsView: View {
                 Feedback.tick(enabled: store.reminderSettings.hapticsEnabled)
             }
         } message: { preset in
-            Text("\"\(preset.name.isEmpty ? "Untitled" : preset.name)" + " (\(preset.volumeText(unit: store.profile.unit)))\" will be removed from the quick-log shelf.")
+            Text("\(preset.name.isEmpty ? "Untitled" : preset.name) (\(preset.volumeText(unit: store.profile.unit))) will be removed from the quick-log shelf.")
         }
         .alert("Reset all presets to the default five vessels?", isPresented: $confirmPresetsReset) {
             Button("Cancel", role: .cancel) {}
@@ -719,20 +719,10 @@ struct SettingsView: View {
                     ForEach($store.containerPresets) { $preset in
                         presetRow($preset)
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    pendingPresetDelete = preset.wrappedValue
-                                    confirmPresetDelete = true
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
+                                presetDeleteSwipeButton($preset)
                             }
                             .contextMenu {
-                                Button(role: .destructive) {
-                                    pendingPresetDelete = preset.wrappedValue
-                                    confirmPresetDelete = true
-                                } label: {
-                                    Label("Delete \(preset.wrappedValue.name.isEmpty ? "Preset" : preset.wrappedValue.name)", systemImage: "trash")
-                                }
+                                presetDeleteContextMenu($preset)
                             }
                     }
                     .onDelete { indexSet in
@@ -909,6 +899,31 @@ struct SettingsView: View {
     private func handlePresetDeletion() {
         if store.containerPresets.isEmpty {
             store.containerPresets = ContainerPreset.defaults
+        }
+    }
+
+    // Small, isolated builders (kept tiny so the List expression below
+    // type-checks instantly — a combined ForEach + swipeActions + contextMenu
+    // with inline closures made the compiler time out).
+
+    private func requestPresetDelete(_ preset: ContainerPreset) {
+        pendingPresetDelete = preset
+        confirmPresetDelete = true
+    }
+
+    private func presetDeleteSwipeButton(_ preset: Binding<ContainerPreset>) -> some View {
+        Button(role: .destructive) {
+            requestPresetDelete(preset.wrappedValue)
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
+    }
+
+    private func presetDeleteContextMenu(_ preset: Binding<ContainerPreset>) -> some View {
+        Button(role: .destructive) {
+            requestPresetDelete(preset.wrappedValue)
+        } label: {
+            Label("Delete \(preset.wrappedValue.name.isEmpty ? "Untitled" : preset.wrappedValue.name)", systemImage: "trash")
         }
     }
 

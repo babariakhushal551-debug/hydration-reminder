@@ -132,7 +132,7 @@ struct BottleFillView: View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
-                    Text("\(unit.value(fromML: currentML), specifier: \"%.0f\")")
+                    Text("\(unit.value(fromML: currentML), specifier: "%.0f")")
                         .font(FlowFont.display(40))
                         .monospacedDigit()
                         .contentTransition(.numericText())
@@ -141,7 +141,7 @@ struct BottleFillView: View {
                         .font(FlowFont.headline(17))
                         .foregroundStyle(Theme.labelSecondary)
                 }
-                Text("of \(unit.value(fromML: goalML), specifier: \"%.0f\") \(unit.symbol) goal")
+                Text("of \(unit.value(fromML: goalML), specifier: "%.0f") \(unit.symbol) goal")
                     .font(FlowFont.subhead())
                     .foregroundStyle(Theme.labelSecondary)
             }

@@ -75,6 +75,7 @@ jobs:
       - name: Build app for device (unsigned)
         run: |
           cd HydroFlow/Project
+          set -o pipefail
           mkdir -p build
           set -o pipefail
           # WidgetKit extension embeds into the app; App Group entitlements are
@@ -91,6 +92,22 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             DEVELOPMENT_TEAM="" \
             2>&1 | tee build/xcodebuild.log
+          exit ${PIPESTATUS[0]}
+
+      - name: Annotate compile errors
+        if: failure()
+        run: |
+          # Surface the first 15 compiler errors as GitHub annotations so
+          # they are visible in the UI without needing admin log access.
+          LOG="HydroFlow/Project/build/xcodebuild.log"
+          test -f "$LOG" || exit 0
+          grep -E "error: " "$LOG" | grep -v "generated" | head -15 | while IFS= read -r line; do
+            echo "::error title=Compile error::$line"
+          done
+          # Also fail loudly if the build log shows zero errors (environment issue).
+          if ! grep -q "error: " "$LOG"; then
+            echo "::warning::No 'error:' lines found in build log — inspect the full log artifact."
+          fi
 
       - name: Add App Groups entitlement for re-signing
         run: |
